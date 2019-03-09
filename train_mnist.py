@@ -40,7 +40,7 @@ print(model)
 params = {'batch_size': 64,
           'shuffle': True,
           'num_workers': 6}
-max_epochs = 50
+max_epochs = 0
 
 # config
 
@@ -53,9 +53,6 @@ validation_generator = data.DataLoader(validation_set, **params)
 
 print('Dataloader initiated.')
 
-# model.fc.load_state_dict({'weight': torch.Tensor(np.ones((1, 16 * 16)) / 180).double(), 'bias': torch.Tensor([-20/180]).double()})
-
-xs, yps, yts = [], [], []
 # Loop over epochs
 for epoch in range(max_epochs):
 
@@ -83,6 +80,6 @@ for epoch in range(max_epochs):
         return Xs, y_preds, y_trues
 
     run(True)
-    xs, yps, yts = run(False)
+    run(False)
 
     

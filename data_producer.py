@@ -65,26 +65,27 @@ class MNISTDataProducer(object):
         for i in range(len(test_labels)):
             self.images[test_labels[i]].append(test_images[i].reshape(28,28))
     
-    def generate(self, grid_size=3, confusion=True):
+    def generate(self, grid_size=3, confusion=True, target=8):
         X = np.zeros((grid_size * 28, grid_size * 28))
         number = np.random.randint(10)
         y = np.random.randint(1, grid_size*grid_size+1)
-        pos = list(range(9))
+        pos = list(range(grid_size * grid_size))
         random.shuffle(pos)
-        j8 = np.random.randint(len(self.images[8])-y)
-        j9 = np.random.randint(len(self.images[9])-y)
         if not confusion:
             for i in range(y):
-                _x, _y = pos[i] // 3 * 28, pos[i] % 3 * 28
+                _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
                 X[_x:_x+28,_y:_y+28] = self.images[number][j+i]
         else:
             yc = np.random.randint(1, y+1)
             for i in range(yc):
-                _x, _y = pos[i] // 3 * 28, pos[i] % 3 * 28
-                X[_x:_x+28,_y:_y+28] = self.images[8][j8+i]     
+                _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
+                X[_x:_x+28,_y:_y+28] = self.images[target][np.random.randint(len(self.images[target]))]
             for i in range(yc, y):
-                _x, _y = pos[i] // 3 * 28, pos[i] % 3 * 28
-                X[_x:_x+28,_y:_y+28] = self.images[9][j9+i]
+                _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
+                number = np.random.randint(9)
+                if number >= target:
+                    number += 1
+                X[_x:_x+28,_y:_y+28] = self.images[number][np.random.randint(len(self.images[number]))]
             y = yc
         return X, y / grid_size / grid_size
             
