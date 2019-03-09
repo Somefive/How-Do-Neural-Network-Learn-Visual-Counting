@@ -77,6 +77,8 @@ for epoch in range(max_epochs):
             Xs.extend(local_batch)
             y_preds.extend(y_pred)
             y_trues.extend(y_true)
+        if train_mode:
+            torch.save(model.state_dict(), args.save)
         return Xs, y_preds, y_trues
 
     run(True)
