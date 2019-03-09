@@ -49,7 +49,7 @@ max_epochs = 50
 training_set = MNISTDataset(10000, grid_size=args.grid_size, confusion=True, target=6)
 training_generator = data.DataLoader(training_set, **params)
 
-validation_set = MNISTDataset(100, grid_size=args.grid_size, confusion=True, target=6)
+validation_set = MNISTDataset(1000, grid_size=args.grid_size, confusion=True, target=6)
 validation_generator = data.DataLoader(validation_set, **params)
 
 print('Dataloader initiated.')

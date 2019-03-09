@@ -77,6 +77,7 @@ class MNISTDataProducer(object):
                 X[_x:_x+28,_y:_y+28] = self.images[number][j+i]
         else:
             yc = np.random.randint(1, y+1)
+            print(y, yc)
             for i in range(yc):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
                 X[_x:_x+28,_y:_y+28] = self.images[target][np.random.randint(len(self.images[target]))]
@@ -92,8 +93,8 @@ class MNISTDataProducer(object):
 
 if __name__ == '__main__':
     gen = MNISTDataProducer()
-    X, y = gen.generate()
+    X, y = gen.generate(grid_size=4, confusion=True, target=6)
     import matplotlib.pyplot as plt
     print(y)
-    plt.imshow(X)
+    plt.imshow(X, cmap='gray')
     plt.show()
