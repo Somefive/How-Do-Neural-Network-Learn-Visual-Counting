@@ -53,35 +53,34 @@ validation_generator = data.DataLoader(validation_set, **params)
 
 print('Dataloader initiated.')
 
+def run(train_mode=True, epoch):
+    if train_mode:
+        optimizer.zero_grad()
+        scheduler.step()
+    mse, cnt = 0, 0
+    iterator = tqdm(enumerate(training_generator if train_mode else validation_generator))
+    Xs, y_preds, y_trues = [], [], []
+    for idx, (local_batch, local_labels) in iterator:
+        local_batch, local_labels = local_batch.to(device), local_labels.to(device)
+        y_pred, _ = model(local_batch)
+        y_true = local_labels.unsqueeze(dim=1)
+        loss = criterion(y_pred, y_true)
+        if train_mode:
+            loss.backward()
+            optimizer.step()
+        mse += loss.item()
+        cnt += local_labels.size(0)
+        iterator.set_description('%s [%d,%d] mse:%.3e' % ('Train' if train_mode else 'Val', epoch+1, cnt, mse / cnt))
+        Xs.extend(local_batch)
+        y_preds.extend(y_pred)
+        y_trues.extend(y_true)
+    if train_mode:
+        torch.save(model.state_dict(), args.save)
+    return Xs, y_preds, y_trues
+
 # Loop over epochs
 for epoch in range(max_epochs):
-
-    def run(train_mode=True):
-        if train_mode:
-            optimizer.zero_grad()
-            scheduler.step()
-        mse, cnt = 0, 0
-        iterator = tqdm(enumerate(training_generator if train_mode else validation_generator))
-        Xs, y_preds, y_trues = [], [], []
-        for idx, (local_batch, local_labels) in iterator:
-            local_batch, local_labels = local_batch.to(device), local_labels.to(device)
-            y_pred, _ = model(local_batch)
-            y_true = local_labels.unsqueeze(dim=1)
-            loss = criterion(y_pred, y_true)
-            if train_mode:
-                loss.backward()
-                optimizer.step()
-            mse += loss.item()
-            cnt += local_labels.size(0)
-            iterator.set_description('%s [%d,%d] mse:%.3e' % ('Train' if train_mode else 'Val', epoch+1, cnt, mse / cnt))
-            Xs.extend(local_batch)
-            y_preds.extend(y_pred)
-            y_trues.extend(y_true)
-        if train_mode:
-            torch.save(model.state_dict(), args.save)
-        return Xs, y_preds, y_trues
-
-    run(True)
-    run(False)
+    run(True, epoch)
+    run(False, epoch)
 
     
