@@ -53,7 +53,7 @@ validation_generator = data.DataLoader(validation_set, **params)
 
 print('Dataloader initiated.')
 
-def run(train_mode=True, epoch):
+def run(train_mode=True, epoch=0):
     if train_mode:
         optimizer.zero_grad()
         scheduler.step()
