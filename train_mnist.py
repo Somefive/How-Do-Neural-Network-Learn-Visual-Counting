@@ -40,7 +40,7 @@ print(model)
 params = {'batch_size': 64,
           'shuffle': True,
           'num_workers': 6}
-max_epochs = 0
+max_epochs = 50
 
 # config
 
