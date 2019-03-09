@@ -17,7 +17,7 @@ if __name__ == '__main__':
     gen = MNISTDataProducer()
     from model import MNISTBaseLineModel
     model = MNISTBaseLineModel().double()
-    model.load_state_dict(torch.load('89mnist-2w.model',map_location='cpu'))
+    model.load_state_dict(torch.load('models/base-model',map_location='cpu'))
     view(gen, {}, model, number=5)
 
 

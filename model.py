@@ -3,14 +3,14 @@ import torch.nn.functional as F
 import torch
 
 class MNISTBaseLineModel(nn.Module):
-    def __init__(self):
+    def __init__(self, size=84):
         super(MNISTBaseLineModel, self).__init__()
         self.conv1 = nn.Conv2d(1, 16, 5, padding=2) # >> 16, 84, 84
         self.conv2 = nn.Conv2d(16, 16, 5, padding=2) # >> 16, 84, 84
         self.conv3 = nn.Conv2d(16, 16, 3, padding=1, stride=2) # >> 16, 42, 42
         self.conv4 = nn.Conv2d(16, 16, 5, padding=2) # >> 16, 42, 42
         self.conv5 = nn.Conv2d(16, 1, 5, padding=2) # >> 1, 42, 42
-        self.pool = nn.AvgPool2d(42, 42) # << 1, 1, 1
+        self.pool = nn.AvgPool2d(size // 2, size // 2) # << 1, 1, 1
         # self.fc = nn.Linear(4 * 32 * 32, 1)
 
     def forward(self, x):

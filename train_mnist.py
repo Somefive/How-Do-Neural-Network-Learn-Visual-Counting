@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--params', type=str)
 parser.add_argument('--save', type=str, default='models/base-model')
 parser.add_argument('--validate', type=bool, default=False)
+parser.add_argument('--grid_size', type=int, default=4)
 args = parser.parse_args()
 
 # CUDA for PyTorch
@@ -24,7 +25,7 @@ print('use_cuda: %s' % use_cuda)
 device = torch.device("cuda:0" if use_cuda else "cpu")
 
 # Model
-model = MNISTBaseLineModel().double().to(device)
+model = MNISTBaseLineModel(size=args.grid_size * 28).double().to(device)
 criterion = torch.nn.MSELoss()
 from torch.optim.lr_scheduler import StepLR
 optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.0) # optim.Adam(model.parameters())
@@ -45,10 +46,10 @@ max_epochs = 50
 # config
 
 # Generators
-training_set = MNISTDataset(10000)
+training_set = MNISTDataset(10000, grid_size=args.grid_size, confusion=True, target=6)
 training_generator = data.DataLoader(training_set, **params)
 
-validation_set = MNISTDataset(100)
+validation_set = MNISTDataset(100, grid_size=args.grid_size, confusion=True, target=6)
 validation_generator = data.DataLoader(validation_set, **params)
 
 print('Dataloader initiated.')
