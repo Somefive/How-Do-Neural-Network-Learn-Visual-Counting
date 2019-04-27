@@ -65,31 +65,43 @@ class MNISTDataProducer(object):
         for i in range(len(test_labels)):
             self.images[test_labels[i]].append(test_images[i].reshape(28,28))
     
-    def generate(self, grid_size=3, confusion=True, target=8):
+    def generate(self, grid_size=3, target=[6, 8], interference=False):
         X = np.zeros((grid_size * 28, grid_size * 28))
+        part = np.random.choice(5, len(target), replace=False)+1
+        # part = np.random.choice(grid_size*grid_size, len(target), replace=False)+1
+        part = np.sort(part)
+        # part = np.array([3])
+
+        y = np.zeros((len(target)))
+
         number = np.random.randint(10)
-        y = np.random.randint(1, grid_size*grid_size+1)
         pos = list(range(grid_size * grid_size))
         random.shuffle(pos)
-        if not confusion:
-            for i in range(y):
-                _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
-                X[_x:_x+28,_y:_y+28] = self.images[number][j+i]
-        else:
-            yc = np.random.randint(1, y+1)
-            print(y, yc)
+
+        last = 0
+        for j in range(len(target)): 
+            yc = part[j] - last # Let's generate yc many target[j]
+            y[j] = yc
+            last = part[j]
             for i in range(yc):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
-                X[_x:_x+28,_y:_y+28] = self.images[target][np.random.randint(len(self.images[target]))]
-            for i in range(yc, y):
+                X[_x:_x+28,_y:_y+28] = self.images[target[j]][np.random.randint(len(self.images[target[j]]))]
+                
+        if interference:
+            for i in range(last, grid_size*grid_size, 1):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
-                number = np.random.randint(9)
-                if number >= target:
-                    number += 1
+                while True:
+                    number = np.random.randint(9)
+                    if number not in target:
+                        break
                 X[_x:_x+28,_y:_y+28] = self.images[number][np.random.randint(len(self.images[number]))]
-            y = yc
-        return X, y / grid_size / grid_size
-            
+        
+        # print(y)
+        # import matplotlib.pyplot as plt
+        # plt.imshow(X)
+        # plt.show()
+
+        return X, y
 
 if __name__ == '__main__':
     gen = MNISTDataProducer()
