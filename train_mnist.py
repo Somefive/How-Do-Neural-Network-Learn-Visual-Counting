@@ -10,6 +10,8 @@ from tensorboardX import SummaryWriter
 import argparse
 import os
 
+from utils import *
+
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
@@ -64,7 +66,7 @@ validation_set = MNISTDataset(1000, grid_size=args.grid_size, max_num=args.max_n
 validation_generator = data.DataLoader(validation_set, **params)
 
 print('Dataloader initiated.')
-writer = SummaryWriter(args.cm + '_' + time_for_file())
+writer = SummaryWriter('runs/'+ args.cm + '_' + time_for_file())
 
 def run(train_mode=True, epoch=0):
     if train_mode:
