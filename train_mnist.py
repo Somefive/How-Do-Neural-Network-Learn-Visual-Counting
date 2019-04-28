@@ -14,18 +14,7 @@ from utils import *
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--params', type=str)
-parser.add_argument('--save', type=str, default='models/base-model')
-parser.add_argument('--validate', type=bool, default=False)
-parser.add_argument('--grid_size', type=int, default=4)
-parser.add_argument('--cm', type=str, default="")
-parser.add_argument('--target', type=str, default="6,8")
-parser.add_argument('--max_num', type=int, default=5)
-parser.add_argument('--interf', type=bool, default=False)
-
-args = parser.parse_args()
-print(args)
+from argsparser import args
 
 rand_seed=0
 np.random.seed(rand_seed)
