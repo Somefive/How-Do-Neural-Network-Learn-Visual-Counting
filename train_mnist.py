@@ -46,7 +46,7 @@ model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(target)).double().t
 criterion = torch.nn.SmoothL1Loss()
 # criterion = torch.nn.MSELoss()
 from torch.optim.lr_scheduler import StepLR
-optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.0) # optim.Adam(model.parameters())
+optimizer = optim.SGD(model.parameters(), lr=1e-4, momentum=0.0) # optim.Adam(model.parameters())
 scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 if args.params and os.path.exists(args.params):
   print('loading parameters from %s' % args.params)
@@ -67,7 +67,7 @@ max_epochs = 50
 training_set = MNISTDataset(10000, grid_size=args.grid_size, max_num=args.max_num, target=target, interference=args.interf)
 training_generator = data.DataLoader(training_set, **params)
 
-validation_set = MNISTDataset(1000, grid_size=args.grid_size, max_num=args.max_num, target=target, interference=args.interf)
+validation_set = MNISTDataset(10, grid_size=args.grid_size, max_num=args.max_num, target=target, interference=args.interf)
 validation_generator = data.DataLoader(validation_set, **params)
 
 print('Dataloader initiated.')
@@ -99,7 +99,7 @@ def run(train_mode=True, epoch=0):
         mse.update(loss.item(), local_labels.size(0))
         diff = torch.abs(y_pred - y_true)
         sum = y_pred + y_true
-        mde.update(torch.mean(diff).item(), local_labels.size(0))
+        mde.update(torch.mean(torch.sum(diff, 1)).item(),local_labels.size(0))
         dos.update(torch.mean(torch.div(diff, sum+1e-8)).item(), local_labels.size(0))
         cnt += local_labels.size(0)
 
@@ -111,9 +111,10 @@ def run(train_mode=True, epoch=0):
             iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)' 
                 % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0][0].item(), y_pred[0][0].item(), \
                     mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
-        writer.add_scalar(phase+'/mse', mse.avg, current_step)
-        writer.add_scalar(phase+'/mde', mde.avg, current_step)
-        writer.add_scalar(phase+'/dos', dos.avg, current_step)
+        if idx % 100 == 0:
+            writer.add_scalar(phase+'/mse', mse.avg, current_step)
+            writer.add_scalar(phase+'/mde', mde.avg, current_step)
+            writer.add_scalar(phase+'/dos', dos.avg, current_step)
 
     if train_mode:
         torch.save(model.state_dict(), args.save)
