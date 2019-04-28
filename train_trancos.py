@@ -1,7 +1,7 @@
 import torch
 from torch.utils import data
 from trancos_dataset import TRANCOSDataset
-from model import TRANCOSBaseLineModel
+from model import TRANCOSBaseLineModel, TRANCOSModel1
 import torch.optim as optim
 from tqdm import tqdm
 import numpy as np
@@ -10,6 +10,7 @@ import argparse
 import os
 from tensorboardX import SummaryWriter
 from utils import *
+import random
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
@@ -19,11 +20,16 @@ parser.add_argument('--save', type=str, default='models/base-model')
 parser.add_argument('--validate', type=bool, default=False)
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--cm', type=str, default="")
-
+parser.add_argument('--lr', type=float, default=1e-3)
 
 args = parser.parse_args()
 print(args)
 
+rand_seed=0
+np.random.seed(rand_seed)
+random.seed(rand_seed)
+torch.manual_seed(rand_seed)
+torch.cuda.manual_seed_all(rand_seed)
 
 # dataset   = {'mnist-train'     : MNISTDataset,
 #              'mnist-test'      : MNISTDataset,
@@ -42,14 +48,21 @@ print('use_cuda: %s' % use_cuda)
 device = torch.device("cuda:0" if use_cuda else "cpu")
 
 # Model
-model = TRANCOSBaseLineModel().double().to(device)
+# model = TRANCOSBaseLineModel().double().to(device)
+model = TRANCOSModel1().double().to(device)
+
 
 # model = MNISTBaseLineModel(size=args.grid_size * 28).double().to(device)
-criterion = torch.nn.MSELoss()
-# criterion = torch.nn.SmoothL1Loss()
+# criterion = torch.nn.MSELoss()
+criterion = torch.nn.SmoothL1Loss()
 from torch.optim.lr_scheduler import StepLR
-optimizer = optim.SGD(model.parameters(), lr=1e-5, momentum=0.0) # optim.Adam(model.parameters())
-scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
+# optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.0) 
+optimizer = optim.SGD([
+                {'params': model.feature.parameters(), 'lr':1e-3},
+                {'params': model.fc.parameters(), 'lr': 1e-3}
+            ], momentum=0.0)
+# optimizer = optim.Adam(model.parameters(),  lr=args.lr, momentum=0.0)
+scheduler = StepLR(optimizer, step_size=15, gamma=0.5)
 if args.params and os.path.exists(args.params):
     print('loading parameters from %s' % args.params)
     model.load_state_dict(torch.load(args.params))
@@ -73,7 +86,7 @@ validation_set = TRANCOSDataset('test')
 validation_generator = data.DataLoader(validation_set, batch_size=args.batch_size, shuffle=False, num_workers=10)
 
 print('Dataloader initiated.')
-writer = SummaryWriter('runs/'+ time_for_file() + '_trancos' + ("_" + args.cm if args.cm != "" else ""))
+writer = SummaryWriter('runs/'+ time_for_file() + '_seed' + rand_seed + '_trancos' + ("_" + args.cm if args.cm != "" else ""))
 
 def run(train_mode=True, epoch=0):
     phase = 'train' if train_mode else 'test'
@@ -104,7 +117,7 @@ def run(train_mode=True, epoch=0):
         cnt += local_labels.size(0)
 
         iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), mde_ratio: %.3e(%.3e)' 
-                % ('Train' if train_mode else 'Val', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
+                % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
                     mse.val, mse.avg, mde.val, mde.avg, mde_ratio.val, mde_ratio.avg))
         # Xs.extend(local_batch)
         # y_preds.extend(y_pred)
