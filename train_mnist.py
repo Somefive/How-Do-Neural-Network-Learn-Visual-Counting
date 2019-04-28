@@ -1,6 +1,6 @@
 import torch
 from torch.utils import data
-from mnist_dataset import MNISTDataset  
+from mnist_dataset import MNISTDataset
 from model import MNISTBaseLineModel
 import torch.optim as optim
 from tqdm import tqdm
@@ -42,17 +42,18 @@ target = [int(x) for x in args.target.split(',')]
 print(target)
 
 # Model
-model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(target)).double().to(device)
+model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(target)).double()
 criterion = torch.nn.SmoothL1Loss()
 # criterion = torch.nn.MSELoss()
 from torch.optim.lr_scheduler import StepLR
 optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.0) # optim.Adam(model.parameters())
 scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 if args.params and os.path.exists(args.params):
-  print('loading parameters from %s' % args.params)
-  model.load_state_dict(torch.load(args.params))
-  model.eval()
-  print('parameter loaded')
+    print('loading parameters from %s' % args.params)
+    model.load_state_dict(torch.load(args.params))
+    model.eval()
+    print('parameter loaded')
+model.to(device)
 print(model)
 
 # Parameters
@@ -104,11 +105,11 @@ def run(train_mode=True, epoch=0):
         cnt += local_labels.size(0)
 
         if len(target) == 1:
-            iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)' 
+            iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
                 % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
                     mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
         else:
-            iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)' 
+            iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
                 % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0][0].item(), y_pred[0][0].item(), \
                     mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
         writer.add_scalar(phase+'/mse', mse.avg, current_step)
@@ -116,7 +117,9 @@ def run(train_mode=True, epoch=0):
         writer.add_scalar(phase+'/dos', dos.avg, current_step)
 
     if train_mode:
+        model.to('cpu')
         torch.save(model.state_dict(), args.save)
+        model.to(device)
     return Xs, y_preds, y_trues
 
 # Loop over epochs
@@ -124,4 +127,4 @@ for epoch in range(max_epochs):
     run(True, epoch)
     run(False, epoch)
 
-    
+
