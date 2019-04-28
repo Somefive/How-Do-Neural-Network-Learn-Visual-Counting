@@ -74,7 +74,7 @@ class TRANCOSBaseLineModel(nn.Module):
 
 
 class TRANCOSModel1(nn.Module):
-    def __init__(self):
+    def __init__(self, bn=False):
         super(TRANCOSModel1, self).__init__()
         # 3 x 480 x 640
         self.feature = nn.Sequential(

@@ -66,7 +66,7 @@ validation_set = MNISTDataset(1000, grid_size=args.grid_size, max_num=args.max_n
 validation_generator = data.DataLoader(validation_set, **params)
 
 print('Dataloader initiated.')
-writer = SummaryWriter('runs/'+ time_for_file() + '_' + args.cm)
+writer = SummaryWriter('runs/'+ time_for_file() + '_mnist' + args.cm)
 
 def run(train_mode=True, epoch=0):
     if train_mode:
@@ -113,14 +113,10 @@ def run(train_mode=True, epoch=0):
                     loss.item() / batch_size, mse / cnt, \
                     torch.sum(torch.mean(diff, 1)).item() / batch_size, mde / cnt, \
                     np.sum(np.nanmean(torch.div(diff, y_true).cpu().detach().numpy(), 1)) / batch_size, mde_ratio / cnt))
-        if idx % 500 == 0:
-            writer.add_scalar('mse', loss.item() / batch_size, current_step)
-            writer.add_scalar('mde', torch.sum(torch.mean(diff, 1)).item() / batch_size, current_step)
-            writer.add_scalar('mde_ratio', np.sum(np.nanmean(torch.div(diff, y_true).cpu().detach().numpy(), 1)) / batch_size, current_step)
+        writer.add_scalar('mse', loss.item() / batch_size, current_step)
+        writer.add_scalar('mde', torch.sum(torch.mean(diff, 1)).item() / batch_size, current_step)
+        writer.add_scalar('mde_ratio', np.sum(np.nanmean(torch.div(diff, y_true).cpu().detach().numpy(), 1)) / batch_size, current_step)
 
-        Xs.extend(local_batch)
-        y_preds.extend(y_pred)
-        y_trues.extend(y_true)
     if train_mode:
         torch.save(model.state_dict(), args.save)
     return Xs, y_preds, y_trues

@@ -74,7 +74,7 @@ print(model)
 params = {'batch_size': 64,
           'shuffle': True,
           'num_workers': 6}
-max_epochs = 50
+max_epochs = 90
 
 # config
 
@@ -86,7 +86,7 @@ validation_set = TRANCOSDataset('test')
 validation_generator = data.DataLoader(validation_set, batch_size=args.batch_size, shuffle=False, num_workers=10)
 
 print('Dataloader initiated.')
-writer = SummaryWriter('runs/'+ time_for_file() + '_seed' + rand_seed + '_trancos' + ("_" + args.cm if args.cm != "" else ""))
+writer = SummaryWriter('runs/'+ time_for_file() + '_seed' + str(rand_seed) + '_trancos' + ("_" + args.cm if args.cm != "" else ""))
 
 def run(train_mode=True, epoch=0):
     phase = 'train' if train_mode else 'test'
