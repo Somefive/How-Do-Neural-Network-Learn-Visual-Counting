@@ -64,19 +64,30 @@ class MNISTDataProducer(object):
             self.images[training_labels[i]].append(training_images[i].reshape(28,28))
         for i in range(len(test_labels)):
             self.images[test_labels[i]].append(test_images[i].reshape(28,28))
+    
+    def generate(self, grid_size=3, target=[6, 8], interference=False):
 
-    def generate(self, grid_size=3, target=[6, 8], max_num=5, interference=False):
         X = np.zeros((grid_size * 28, grid_size * 28))
         # part = np.random.choice(5, len(target), replace=False)+1
-        max_num = min(max_num, grid_size * grid_size)
-        part = np.random.choice(max_num, len(target))+1
+        # max_num = min(max_num, grid_size * grid_size)
+        if interference:
+            part = np.random.choice(grid_size * grid_size + 1, len(target)+1)
+        else:
+            part = np.random.choice(grid_size * grid_size + 1, len(target))
         part = np.sort(part)
 
         y = np.zeros((len(target)))
 
-        number = np.random.randint(10)
+        # number = np.random.randint(10)
         pos = list(range(grid_size * grid_size))
         random.shuffle(pos)
+
+        # for i in range(grid_size * grid_size):
+        #     number = np.random.randint(len(target)+1)
+        #     if number == len(target):
+        #         continue
+        #     _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
+        #     X[_x:_x+28,_y:_y+28] = self.images[target[number]][np.random.randint(len(self.images[target[number]]))]            
 
         last = 0
         for j in range(len(target)):
@@ -88,7 +99,7 @@ class MNISTDataProducer(object):
                 X[_x:_x+28,_y:_y+28] = self.images[target[j]][np.random.randint(len(self.images[target[j]]))]
 
         if interference:
-            for i in range(last, grid_size*grid_size, 1):
+            for i in range(last, part[len(target)], 1):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
                 while True:
                     number = np.random.randint(9)

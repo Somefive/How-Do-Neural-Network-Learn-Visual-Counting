@@ -13,7 +13,18 @@ from utils import *
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 
-from argsparser import args
+parser = argparse.ArgumentParser()
+parser.add_argument('--params', type=str)
+parser.add_argument('--save', type=str, default='models/base-model')
+parser.add_argument('--validate', type=bool, default=False)
+parser.add_argument('--grid_size', type=int, default=4)
+parser.add_argument('--cm', type=str, default="")
+parser.add_argument('--target', type=str, default="6,8")
+# parser.add_argument('--max_num', type=int, default=5)
+parser.add_argument('--interf', type=bool, default=False)
+
+args = parser.parse_args()
+print(args)
 
 rand_seed=0
 np.random.seed(rand_seed)
@@ -35,10 +46,10 @@ model.to(device)
 print(model)
 
 # Generators
-training_set = MNISTDataset(10000, grid_size=args.grid_size, max_num=args.max_num, target=args.classes, interference=args.interf)
+training_set = MNISTDataset(10000, grid_size=args.grid_size, target=args.classes, interference=args.interf)
 training_generator = data.DataLoader(training_set, **args.data_generator_params)
 
-validation_set = MNISTDataset(1000, grid_size=args.grid_size, max_num=args.max_num, target=args.classes, interference=args.interf)
+validation_set = MNISTDataset(1000, grid_size=args.grid_size, target=args.classes, interference=args.interf)
 validation_generator = data.DataLoader(validation_set, **args.data_generator_params)
 
 print('Dataloader initiated.')

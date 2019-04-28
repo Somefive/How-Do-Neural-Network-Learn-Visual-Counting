@@ -4,10 +4,10 @@ from data_producer import MNISTDataProducer
 
 class MNISTDataset(data.Dataset):
 
-    def __init__(self, size, grid_size=3, max_num=5, target=[6, 8], interference=False):
+    def __init__(self, size, grid_size=3, target=[6, 8], interference=False):
         self.size = size
         g = MNISTDataProducer()
-        self.data = [g.generate(grid_size=grid_size, target=target, max_num=max_num, interference=interference) for i in range(size)]
+        self.data = [g.generate(grid_size=grid_size, target=target, interference=interference) for i in range(size)]
     
     def __len__(self):
         return self.size
