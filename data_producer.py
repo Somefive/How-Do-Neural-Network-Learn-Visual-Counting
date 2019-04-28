@@ -120,7 +120,7 @@ class MNISTDataProducer(object):
         y = np.zeros((len(target)))
         flag = np.zeros((grid_size * 28, grid_size * 28))
         for i in range(len(target)):
-            num_instance = np.random.randint(max_num)
+            num_instance = np.random.randint(maxnum_perclass)
             y[i] = num_instance
             for j in range(num_instance):
                 while True:
@@ -134,7 +134,7 @@ class MNISTDataProducer(object):
 
 if __name__ == '__main__':
     gen = MNISTDataProducer()
-    X, y = gen.generate(grid_size=4, confusion=True, target=6)
+    X, y = gen.generate_random(grid_size=4, target=[1,2,3,4,5,6])
     import matplotlib.pyplot as plt
     print(y)
     plt.imshow(X, cmap='gray')

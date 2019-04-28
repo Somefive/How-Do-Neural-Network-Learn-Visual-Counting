@@ -27,7 +27,7 @@ class MNISTBaseLineModel(AutoLoadSaveModel):
         self.conv3 = nn.Conv2d(16, 16, 3, padding=1, stride=2) # >> 16, 42, 42
         self.conv4 = nn.Conv2d(16, 16, 5, padding=2) # >> 16, 42, 42
         self.conv5 = nn.Conv2d(16, cls, 5, padding=2) # >> cls, 42, 42
-        self.pool = nn.AvgPool2d(size // 2, size // 2) # << 1, 1, 1
+        self.pool = nn.AvgPool2d(size // 2, size // 2) # >> cls, 1, 1
         # self.fc = nn.Linear(4 * 32 * 32, 1)
 
     def forward(self, x):
