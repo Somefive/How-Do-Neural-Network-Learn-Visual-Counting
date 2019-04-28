@@ -64,7 +64,7 @@ class MNISTDataProducer(object):
             self.images[training_labels[i]].append(training_images[i].reshape(28,28))
         for i in range(len(test_labels)):
             self.images[test_labels[i]].append(test_images[i].reshape(28,28))
-    
+
     def generate(self, grid_size=3, target=[6, 8], max_num=5, interference=False):
         X = np.zeros((grid_size * 28, grid_size * 28))
         # part = np.random.choice(5, len(target), replace=False)+1
@@ -79,14 +79,14 @@ class MNISTDataProducer(object):
         random.shuffle(pos)
 
         last = 0
-        for j in range(len(target)): 
+        for j in range(len(target)):
             yc = part[j] - last # Let's generate yc many target[j]
             y[j] = yc
             last = part[j]
             for i in range(yc):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
                 X[_x:_x+28,_y:_y+28] = self.images[target[j]][np.random.randint(len(self.images[target[j]]))]
-                
+
         if interference:
             for i in range(last, grid_size*grid_size, 1):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
@@ -95,12 +95,29 @@ class MNISTDataProducer(object):
                     if number not in target:
                         break
                 X[_x:_x+28,_y:_y+28] = self.images[number][np.random.randint(len(self.images[number]))]
-        
+
         # print(y)
         # import matplotlib.pyplot as plt
         # plt.imshow(X)
         # plt.show()
 
+        return X, y
+
+    def generate_random(self, grid_size=3, target=[6, 8], maxnum_perclass=5, interference=False, overlap_rate=0.5):
+        X = np.zeros((grid_size * 28, grid_size * 28))
+        y = np.zeros((len(target)))
+        flag = np.zeros((grid_size * 28, grid_size * 28))
+        for i in range(len(target)):
+            num_instance = np.random.randint(max_num)
+            y[i] = num_instance
+            for j in range(num_instance):
+                while True:
+                    top, left = np.random.randint(X.shape[0]-28), np.random.randint(X.shape[1]-28)
+                    if np.sum(flag[top:top+28, left:left+28]) < overlap_rate * (28*28):
+                        break
+                flag[top:top+28, left:left+28] = 1
+                X[top:top+28, left:left+28] += self.images[target[i]][np.random.randint(len(self.images[target[i]]))]
+        X = np.minimum(X, 1)
         return X, y
 
 if __name__ == '__main__':
