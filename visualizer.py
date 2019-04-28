@@ -7,7 +7,7 @@ import os
 
 class HeatMapVisualizer:
 
-    def __init__(self, model, model_path, dataset, classes, cmap='hot', interpolation='nearest'):
+    def __init__(self, model, model_path, dataset, classes, fig_save_path=None, cmap='hot', interpolation='nearest'):
         self.classes = classes
         self.model = model
         if os.path.exists(model_path):
@@ -16,6 +16,7 @@ class HeatMapVisualizer:
         self.dataset = dataset
         self.index = 0
         self.plot_params = {'cmap': cmap, 'interpolation': interpolation}
+        self.fig_save_path = fig_save_path
 
     def plot(self):
         X, y = self.dataset[self.index]
@@ -33,8 +34,11 @@ class HeatMapVisualizer:
             plt.subplot(height, width, i+2)
             plt.imshow(hidden[i], **self.plot_params)
             plt.title('cls:%d pred/gt:%.2f/%.d' % (self.classes[i], pred[i], y[i]))
-        plt.show()
-        self.index = (self.index + 1) / len(self.dataset)
+        if self.fig_save_path:
+            plt.savefig(self.fig_save_path)
+        else:
+            plt.show()
+        self.index = (self.index + 1) % len(self.dataset)
 
 
 if __name__ == '__main__':
@@ -45,6 +49,7 @@ if __name__ == '__main__':
         model=model,
         model_path=args.params,
         dataset=dataset,
+        fig_save_path=args.fig_save_path,
         classes=args.classes
     )
     for i in range(5):

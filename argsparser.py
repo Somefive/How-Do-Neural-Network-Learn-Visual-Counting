@@ -12,6 +12,7 @@ parser.add_argument('--target', type=str, default="6,8")
 parser.add_argument('--max_num', type=int, default=5)
 parser.add_argument('--interf', type=bool, default=False)
 parser.add_argument('--classes', type=str2ints, default=[1,2,3])
+parser.add_argument('--fig_save_path', type=str, default=None)
 
 args = parser.parse_args()
 print(args)
