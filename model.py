@@ -1,8 +1,17 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import os
 
-class MNISTBaseLineModel(nn.Module):
+class AutoLoadModel(nn.Module):
+
+    def load_model(self, load_model_path):
+        if load_model_path and os.path.exists(load_model_path):
+            self.load_state_dict(torch.load(load_model_path))
+            model.eval()
+            print('model parameter loaded from %s' % load_model_path)
+
+class MNISTBaseLineModel(AutoLoadModel):
     def __init__(self, size=84, cls=3):
         super(MNISTBaseLineModel, self).__init__()
 

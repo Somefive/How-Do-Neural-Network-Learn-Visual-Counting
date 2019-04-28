@@ -18,7 +18,7 @@ class HeatMapVisualizer:
         self.plot_params = {'cmap': cmap, 'interpolation': interpolation}
         self.fig_save_path = fig_save_path
 
-    def plot(self):
+    def plot(self, fig_index=0):
         X, y = self.dataset[self.index]
         X = torch.as_tensor([X])
         pred, hidden = self.model(X)
@@ -35,7 +35,11 @@ class HeatMapVisualizer:
             plt.imshow(hidden[i], **self.plot_params)
             plt.title('cls:%d pred/gt:%.2f/%.d' % (self.classes[i], pred[i], y[i]))
         if self.fig_save_path:
-            plt.savefig(self.fig_save_path)
+            if fig_index > 0:
+                fig_save_path = self.fig_save_path[:self.fig_save_path.index('.')] + str(fig_index) + self.fig_save_path[self.fig_save_path.index('.'):]
+            else:
+                fig_save_path = self.fig_save_path
+            plt.savefig(fig_save_path)
         else:
             plt.show()
         self.index = (self.index + 1) % len(self.dataset)
@@ -47,10 +51,13 @@ if __name__ == '__main__':
     dataset = MNISTDataset(20, grid_size=args.grid_size, max_num=args.max_num, target=args.classes, interference=args.interf)
     visualizer = HeatMapVisualizer(
         model=model,
-        model_path=args.params,
+        model_path=args.load_model_path,
         dataset=dataset,
         fig_save_path=args.fig_save_path,
         classes=args.classes
     )
-    for i in range(5):
-        visualizer.plot()
+    if args.figs_count > 0:
+        for fig_index in range(args.figs_count):
+            visualizer.plot(fig_index+1)
+    else:
+        visualizer.plot(0)

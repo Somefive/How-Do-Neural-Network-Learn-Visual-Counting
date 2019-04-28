@@ -6,7 +6,6 @@ import torch.optim as optim
 from tqdm import tqdm
 import numpy as np
 from tensorboardX import SummaryWriter
-import argparse
 import os
 import random
 from utils import *
@@ -23,42 +22,24 @@ torch.manual_seed(rand_seed)
 torch.cuda.manual_seed_all(rand_seed)
 
 # CUDA for PyTorch
-use_cuda = torch.cuda.is_available()
-print('use_cuda: %s' % use_cuda)
-device = torch.device("cuda" if use_cuda else "cpu")
-
-target = [int(x) for x in args.target.split(',')]
-print(target)
+device = torch.device(args.device)
 
 # Model
-model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(target)).double()
-criterion = torch.nn.SmoothL1Loss()
-# criterion = torch.nn.MSELoss()
+model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes)).double()
+criterion = args.loss()
 from torch.optim.lr_scheduler import StepLR
-optimizer = optim.SGD(model.parameters(), lr=1e-4, momentum=0.0) # optim.Adam(model.parameters())
+optimizer = args.optim(model.parameters(), lr=args.lr)
 scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
-if args.params and os.path.exists(args.params):
-    print('loading parameters from %s' % args.params)
-    model.load_state_dict(torch.load(args.params))
-    model.eval()
-    print('parameter loaded')
+model.load_model(args.load_model_path)
 model.to(device)
 print(model)
 
-# Parameters
-params = {'batch_size': 64,
-          'shuffle': True,
-          'num_workers': 6}
-max_epochs = 50
-
-# config
-
 # Generators
-training_set = MNISTDataset(10000, grid_size=args.grid_size, max_num=args.max_num, target=target, interference=args.interf)
-training_generator = data.DataLoader(training_set, **params)
+training_set = MNISTDataset(10000, grid_size=args.grid_size, max_num=args.max_num, target=args.classes, interference=args.interf)
+training_generator = data.DataLoader(training_set, **args.data_generator_params)
 
-validation_set = MNISTDataset(10, grid_size=args.grid_size, max_num=args.max_num, target=target, interference=args.interf)
-validation_generator = data.DataLoader(validation_set, **params)
+validation_set = MNISTDataset(1000, grid_size=args.grid_size, max_num=args.max_num, target=args.classes, interference=args.interf)
+validation_generator = data.DataLoader(validation_set, **args.data_generator_params)
 
 print('Dataloader initiated.')
 writer = SummaryWriter('runs/'+ time_for_file() + '_seed' + str(rand_seed) + '_mnist' + ("_" + args.cm if args.cm != "" else ""))
@@ -93,7 +74,7 @@ def run(train_mode=True, epoch=0):
         dos.update(torch.mean(torch.div(diff, sum+1e-8)).item(), local_labels.size(0))
         cnt += local_labels.size(0)
 
-        if len(target) == 1:
+        if len(args.classes) == 1:
             iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
                 % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
                     mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
@@ -108,12 +89,12 @@ def run(train_mode=True, epoch=0):
 
     if train_mode:
         model.to('cpu')
-        torch.save(model.state_dict(), args.save)
+        torch.save(model.state_dict(), args.save_model_path)
         model.to(device)
     return Xs, y_preds, y_trues
 
 # Loop over epochs
-for epoch in range(max_epochs):
+for epoch in range(args.max_epochs):
     run(True, epoch)
     run(False, epoch)
 
