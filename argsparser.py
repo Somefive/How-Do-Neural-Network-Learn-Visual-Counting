@@ -33,6 +33,9 @@ parser.add_argument('--max_num', type=int, default=5)
 parser.add_argument('--interf', type=bool, default=False)
 parser.add_argument('--classes', type=str2ints, default=[6,8])
 
+parser.add_argument('--train_set_size', type=int, default=10000)
+parser.add_argument('--val_set_size', type=int, default=1000)
+
 parser.add_argument('--fig_save_path', type=str, default=None)
 parser.add_argument('--figs_count', type=int, default=0)
 

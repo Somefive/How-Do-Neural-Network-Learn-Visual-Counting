@@ -35,10 +35,10 @@ model.to(device)
 print(model)
 
 # Generators
-training_set = MNISTDataset(10000, grid_size=args.grid_size, target=args.classes, interference=args.interf)
+training_set = MNISTDataset(size=args.train_set_size, grid_size=args.grid_size, target=args.classes, interference=args.interf)
 training_generator = data.DataLoader(training_set, **args.data_generator_params)
 
-validation_set = MNISTDataset(1000, grid_size=args.grid_size, target=args.classes, interference=args.interf)
+validation_set = MNISTDataset(size=args.val_set_size, grid_size=args.grid_size, target=args.classes, interference=args.interf)
 validation_generator = data.DataLoader(validation_set, **args.data_generator_params)
 
 print('Dataloader initiated.')
