@@ -99,9 +99,8 @@ def run(train_mode=True, epoch=0):
             writer.add_scalar(phase+'/dos', dos.avg, current_step)
 
     if train_mode:
-        model.to('cpu')
-        torch.save(model.state_dict(), args.save_model_path)
-        model.to(device)
+        model.save_model(args.save_model_path, device=device)
+
     return Xs, y_preds, y_trues
 
 # Loop over epochs

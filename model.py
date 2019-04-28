@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import torch
 import os
 
-class AutoLoadModel(nn.Module):
+class AutoLoadSaveModel(nn.Module):
 
     def load_model(self, load_model_path):
         if load_model_path and os.path.exists(load_model_path):
@@ -11,7 +11,12 @@ class AutoLoadModel(nn.Module):
             model.eval()
             print('model parameter loaded from %s' % load_model_path)
 
-class MNISTBaseLineModel(AutoLoadModel):
+    def save_model(self, save_model_path, device='cpu'):
+        model.to('cpu')
+        torch.save(model.state_dict(), save_model_path)
+        model.to(device)
+
+class MNISTBaseLineModel(AutoLoadSaveModel):
     def __init__(self, size=84, cls=3):
         super(MNISTBaseLineModel, self).__init__()
 
