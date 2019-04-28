@@ -48,7 +48,7 @@ class HeatMapVisualizer:
 if __name__ == '__main__':
     from argsparser import args
     model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes)).double()
-    dataset = MNISTDataset(20, grid_size=args.grid_size, max_num=args.max_num, target=args.classes, interference=args.interf)
+    dataset = MNISTDataset(args.figs_count+1, grid_size=args.grid_size, target=args.classes, interference=args.interf)
     visualizer = HeatMapVisualizer(
         model=model,
         model_path=args.load_model_path,

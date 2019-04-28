@@ -64,7 +64,7 @@ class MNISTDataProducer(object):
             self.images[training_labels[i]].append(training_images[i].reshape(28,28))
         for i in range(len(test_labels)):
             self.images[test_labels[i]].append(test_images[i].reshape(28,28))
-    
+
     def generate(self, grid_size=3, target=[6, 8], interference=False):
 
         X = np.zeros((grid_size * 28, grid_size * 28))
@@ -74,6 +74,7 @@ class MNISTDataProducer(object):
             part = np.random.choice(grid_size * grid_size + 1, len(target)+1)
         else:
             part = np.random.choice(grid_size * grid_size + 1, len(target))
+
         part = np.sort(part)
 
         y = np.zeros((len(target)))
@@ -87,16 +88,16 @@ class MNISTDataProducer(object):
         #     if number == len(target):
         #         continue
         #     _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
-        #     X[_x:_x+28,_y:_y+28] = self.images[target[number]][np.random.randint(len(self.images[target[number]]))]            
+        #     X[_x:_x+28,_y:_y+28] = self.images[target[number]][np.random.randint(len(self.images[target[number]]))]
 
         last = 0
         for j in range(len(target)):
             yc = part[j] - last # Let's generate yc many target[j]
             y[j] = yc
-            last = part[j]
-            for i in range(yc):
+            for i in range(last, yc+last):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
                 X[_x:_x+28,_y:_y+28] = self.images[target[j]][np.random.randint(len(self.images[target[j]]))]
+            last = part[j]
 
         if interference:
             for i in range(last, part[len(target)], 1):
