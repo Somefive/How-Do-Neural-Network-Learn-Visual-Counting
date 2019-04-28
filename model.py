@@ -8,13 +8,13 @@ class AutoLoadSaveModel(nn.Module):
     def load_model(self, load_model_path):
         if load_model_path and os.path.exists(load_model_path):
             self.load_state_dict(torch.load(load_model_path))
-            model.eval()
+            self.eval()
             print('model parameter loaded from %s' % load_model_path)
 
     def save_model(self, save_model_path, device='cpu'):
-        model.to('cpu')
-        torch.save(model.state_dict(), save_model_path)
-        model.to(device)
+        self.to('cpu')
+        torch.save(self.state_dict(), save_model_path)
+        self.to(device)
 
 class MNISTBaseLineModel(AutoLoadSaveModel):
     def __init__(self, size=84, cls=3):
