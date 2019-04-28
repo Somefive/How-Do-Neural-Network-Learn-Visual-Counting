@@ -31,7 +31,7 @@ print(args)
 # CUDA for PyTorch
 use_cuda = torch.cuda.is_available()
 print('use_cuda: %s' % use_cuda)
-device = torch.device("cuda:3" if use_cuda else "cpu")
+device = torch.device("cuda" if use_cuda else "cpu")
 
 target = [int(x) for x in args.target.split(',')]
 print(target)
@@ -66,7 +66,7 @@ validation_set = MNISTDataset(1000, grid_size=args.grid_size, max_num=args.max_n
 validation_generator = data.DataLoader(validation_set, **params)
 
 print('Dataloader initiated.')
-writer = SummaryWriter('runs/'+ args.cm + '_' + time_for_file())
+writer = SummaryWriter('runs/'+ time_for_file() + '_' + args.cm)
 
 def run(train_mode=True, epoch=0):
     if train_mode:
@@ -105,18 +105,18 @@ def run(train_mode=True, epoch=0):
                     y_true[0].item(), y_pred[0].item(), \
                     loss.item() / batch_size, mse / cnt, \
                     torch.sum(torch.mean(diff, 1)).item() / batch_size, mde / cnt, \
-                    torch.sum(torch.mean(torch.div(diff, y_true), 1)).item() / batch_size, mde_ratio / cnt))
+                    np.sum(np.nanmean(torch.div(diff, y_true).cpu().detach().numpy(), 1)) / batch_size, mde_ratio / cnt))
         else:
             iterator.set_description('%s [%d,%d] %d vs %.2f, mse:%.3e(%.3e), mde:%.3e(%.3e), mde_ratio: %.3e(%.3e)' % 
                     ('Train' if train_mode else 'Val', epoch+1, cnt, 
                     y_true[0][0].item(), y_pred[0][0].item(), \
                     loss.item() / batch_size, mse / cnt, \
                     torch.sum(torch.mean(diff, 1)).item() / batch_size, mde / cnt, \
-                    torch.sum(torch.mean(torch.div(diff, y_true), 1)).item() / batch_size, mde_ratio / cnt))
+                    np.sum(np.nanmean(torch.div(diff, y_true).cpu().detach().numpy(), 1)) / batch_size, mde_ratio / cnt))
         if idx % 500 == 0:
             writer.add_scalar('mse', loss.item() / batch_size, current_step)
             writer.add_scalar('mde', torch.sum(torch.mean(diff, 1)).item() / batch_size, current_step)
-            writer.add_scalar('mde_ratio', torch.sum(torch.mean(torch.div(diff, y_true), 1)).item() / batch_size, current_step)
+            writer.add_scalar('mde_ratio', np.sum(np.nanmean(torch.div(diff, y_true).cpu().detach().numpy(), 1)) / batch_size, current_step)
 
         Xs.extend(local_batch)
         y_preds.extend(y_pred)

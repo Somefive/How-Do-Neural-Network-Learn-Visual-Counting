@@ -66,8 +66,14 @@ class TRANCOSBaseLineModel(nn.Module):
         self.fc = nn.Linear(15 * 20, 1)
 
     def forward(self, x):
+        # x = self.pool1(F.relu(self.conv1(x)))
+        # x = self.pool2(F.relu(self.conv2(x)))
+        # x = self.fc(F.relu(self.conv3(x).view(-1, 15 * 20)))
+        # x1 = torch.sigmoid(x) * 15 * 20
+        # print(x1)
+        # print('----------------')
+
         x = self.pool1(F.relu(self.conv1(x)))
         x = self.pool2(F.relu(self.conv2(x)))
         x = self.fc(self.conv3(x).view(-1, 15 * 20))
-        x = torch.sigmoid(x) * 15 * 20
         return x

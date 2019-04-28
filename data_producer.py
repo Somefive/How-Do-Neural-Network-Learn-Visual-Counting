@@ -65,12 +65,12 @@ class MNISTDataProducer(object):
         for i in range(len(test_labels)):
             self.images[test_labels[i]].append(test_images[i].reshape(28,28))
     
-    def generate(self, grid_size=3, target=[6, 8], interference=False):
+    def generate(self, grid_size=3, target=[6, 8], max_num=5, interference=False):
         X = np.zeros((grid_size * 28, grid_size * 28))
-        part = np.random.choice(5, len(target), replace=False)+1
-        # part = np.random.choice(grid_size*grid_size, len(target), replace=False)+1
+        # part = np.random.choice(5, len(target), replace=False)+1
+        max_num = min(max_num, grid_size * grid_size)
+        part = np.random.choice(max_num, len(target))+1
         part = np.sort(part)
-        # part = np.array([3])
 
         y = np.zeros((len(target)))
 
