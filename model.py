@@ -17,16 +17,16 @@ class AutoLoadSaveModel(nn.Module):
         self.to(device)
 
 class MNISTBaseLineModel(AutoLoadSaveModel):
-    def __init__(self, size=84, cls=3):
+    def __init__(self, size=84, cls=3, filter_size=16):
         super(MNISTBaseLineModel, self).__init__()
 
         self.cls = cls
 
-        self.conv1 = nn.Conv2d(1, 16, 5, padding=2) # >> 16, 84, 84
-        self.conv2 = nn.Conv2d(16, 16, 5, padding=2) # >> 16, 84, 84
-        self.conv3 = nn.Conv2d(16, 16, 3, padding=1, stride=2) # >> 16, 42, 42
-        self.conv4 = nn.Conv2d(16, 16, 5, padding=2) # >> 16, 42, 42
-        self.conv5 = nn.Conv2d(16, cls, 5, padding=2) # >> cls, 42, 42
+        self.conv1 = nn.Conv2d(1, filter_size, 5, padding=2) # >> 16, 84, 84
+        self.conv2 = nn.Conv2d(filter_size, filter_size, 5, padding=2) # >> 16, 84, 84
+        self.conv3 = nn.Conv2d(filter_size, filter_size, 3, padding=1, stride=2) # >> 16, 42, 42
+        self.conv4 = nn.Conv2d(filter_size, filter_size, 5, padding=2) # >> 16, 42, 42
+        self.conv5 = nn.Conv2d(filter_size, cls, 5, padding=2) # >> cls, 42, 42
         self.pool = nn.AvgPool2d(size // 2, size // 2) # >> cls, 1, 1
         # self.fc = nn.Linear(4 * 32 * 32, 1)
 

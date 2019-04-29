@@ -49,7 +49,7 @@ parser.add_argument('--optim', type=str2optim, default=torch.optim.SGD)
 parser.add_argument('--lr', type=float, default=1e-4)
 
 parser.add_argument('--device', type=str, default='auto')
-
+parser.add_argument('--filter_size', type=int, default=16)
 
 args = parser.parse_args()
 

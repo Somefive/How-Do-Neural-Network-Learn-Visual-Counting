@@ -25,7 +25,7 @@ torch.cuda.manual_seed_all(rand_seed)
 device = torch.device(args.device)
 
 # Model
-model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes)).double()
+model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes), filter_size=args.filter_size).double()
 criterion = args.loss()
 from torch.optim.lr_scheduler import StepLR
 optimizer = args.optim(model.parameters(), lr=args.lr)
