@@ -26,11 +26,11 @@ def str2optim(s):
 parser = argparse.ArgumentParser()
 parser.add_argument('--load_model_path', type=str, default='models/base-model')
 parser.add_argument('--save_model_path', type=str, default='models/base-model')
-parser.add_argument('--validate', type=bool, default=False)
+parser.add_argument('--validate', type=str2bool, default=False)
 parser.add_argument('--grid_size', type=int, default=4)
 parser.add_argument('--cm', type=str, default="")
 parser.add_argument('--max_num', type=int, default=5)
-parser.add_argument('--interf', type=bool, default=False)
+parser.add_argument('--interf', type=str2bool, default=False)
 parser.add_argument('--classes', type=str2ints, default=[6,8])
 
 parser.add_argument('--train_set_size', type=int, default=10000)
@@ -51,12 +51,24 @@ parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--device', type=str, default='auto')
 parser.add_argument('--filter_size', type=int, default=16)
 
+parser.add_argument('--dataset_random', type=str2bool, default=False)
+parser.add_argument('--dataset_maxnum_perclass', type=int, default=5)
+parser.add_argument('--dataset_overlap_rate', type=float, default=0.5)
+
 args = parser.parse_args()
 
 args.data_generator_params = {
     'batch_size': args.batch_size,
     'shuffle': args.shuffle,
     'num_workers': args.num_workers
+}
+args.dataset_params = {
+    'grid_size': args.grid_size,
+    'target': args.classes,
+    'interference': args.interf,
+    'random': args.dataset_random,
+    'maxnum_perclass': args.dataset_maxnum_perclass,
+    'overlap_rate': args.dataset_overlap_rate
 }
 if args.device == 'auto':
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'

@@ -10,9 +10,7 @@ class HeatMapVisualizer:
     def __init__(self, model, model_path, dataset, classes, fig_save_path=None, cmap='hot', interpolation='nearest'):
         self.classes = classes
         self.model = model
-        if os.path.exists(model_path):
-            self.model.load_state_dict(torch.load(model_path))
-        self.model.eval()
+        self.model.load_model(model_path)
         self.dataset = dataset
         self.index = 0
         self.plot_params = {'cmap': cmap, 'interpolation': interpolation}
@@ -47,8 +45,8 @@ class HeatMapVisualizer:
 
 if __name__ == '__main__':
     from argsparser import args
-    model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes)).double()
-    dataset = MNISTDataset(args.figs_count+1, grid_size=args.grid_size, target=args.classes, interference=args.interf)
+    model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes), filter_size=args.filter_size).double()
+    dataset = MNISTDataset(args.figs_count+1, **args.dataset_params)
     visualizer = HeatMapVisualizer(
         model=model,
         model_path=args.load_model_path,
