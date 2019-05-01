@@ -39,8 +39,8 @@ scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 model.load_model(args.load_model_path)
 model.to(device)
 
-logging.info(model)
-logging.info(args)
+logging.critical(model)
+logging.critical(args)
 
 # Generators
 training_set = MNISTDataset(size=args.train_set_size, **args.dataset_params)
@@ -61,7 +61,6 @@ def run(train_mode=True, epoch=0):
     dos = AverageMeter()
     cnt = 0
     iterator = tqdm(enumerate(training_generator if train_mode else validation_generator))
-    Xs, y_preds, y_trues = [], [], []
     num_batches = len(training_generator)
     for idx, (local_batch, local_labels) in iterator:
         current_step = epoch * num_batches + idx
@@ -81,29 +80,23 @@ def run(train_mode=True, epoch=0):
         dos.update(torch.mean(torch.div(diff, sum+1e-8)).item(), local_labels.size(0))
         cnt += local_labels.size(0)
 
+        if len(args.classes) == 1:
+            log_string = '%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)' % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
+                    mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg)
+        else:
+            log_string = '%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)' % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0][0].item(), y_pred[0][0].item(), \
+                    mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg)
+        iterator.set_description(log_string)
+        logging.info(log_string)
+
         if idx % 50 == 0:
-            if len(args.classes) == 1:
-                iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
-                    % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
-                        mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
-                logging.info('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
-                    % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
-                        mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
-            else:
-                iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
-                    % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0][0].item(), y_pred[0][0].item(), \
-                        mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
-                logging.info('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
-                    % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0][0].item(), y_pred[0][0].item(), \
-                        mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
-                writer.add_scalar(phase+'/mse', mse.avg, current_step)
-                writer.add_scalar(phase+'/mde', mde.avg, current_step)
-                writer.add_scalar(phase+'/dos', dos.avg, current_step)
+            writer.add_scalar(phase+'/mse', mse.avg, current_step)
+            writer.add_scalar(phase+'/mde', mde.avg, current_step)
+            writer.add_scalar(phase+'/dos', dos.avg, current_step)
 
     if train_mode:
         model.save_model(args.save_model_path, device=device)
 
-    return Xs, y_preds, y_trues
 
 # Loop over epochs
 for epoch in range(args.max_epochs):
