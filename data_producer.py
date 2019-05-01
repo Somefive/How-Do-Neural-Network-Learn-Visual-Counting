@@ -65,7 +65,7 @@ class MNISTDataProducer(object):
         for i in range(len(test_labels)):
             self.images[test_labels[i]].append(test_images[i].reshape(28,28))
 
-    def generate(self, grid_size=3, target=[6, 8], interference=False):
+    def generate(self, grid_size=3, target=[6, 8], maxnum_perclass=5, interference=False):
 
         X = np.zeros((grid_size * 28, grid_size * 28))
         # part = np.random.choice(5, len(target), replace=False)+1
@@ -74,27 +74,18 @@ class MNISTDataProducer(object):
             part = np.random.choice(grid_size * grid_size + 1, len(target)+1)
         else:
             part = np.random.choice(grid_size * grid_size + 1, len(target))
-
         part = np.sort(part)
 
         y = np.zeros((len(target)))
 
-        # number = np.random.randint(10)
         pos = list(range(grid_size * grid_size))
         random.shuffle(pos)
-
-        # for i in range(grid_size * grid_size):
-        #     number = np.random.randint(len(target)+1)
-        #     if number == len(target):
-        #         continue
-        #     _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
-        #     X[_x:_x+28,_y:_y+28] = self.images[target[number]][np.random.randint(len(self.images[target[number]]))]
 
         last = 0
         for j in range(len(target)):
             yc = part[j] - last # Let's generate yc many target[j]
-            y[j] = yc
-            for i in range(last, yc+last):
+            y[j] = min(yc, maxnum_perclass)
+            for i in range(last, min(yc, maxnum_perclass)+last):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
                 X[_x:_x+28,_y:_y+28] = self.images[target[j]][np.random.randint(len(self.images[target[j]]))]
             last = part[j]
@@ -103,7 +94,7 @@ class MNISTDataProducer(object):
             for i in range(last, part[len(target)], 1):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
                 while True:
-                    number = np.random.randint(9)
+                    number = np.random.randint(10)
                     if number not in target:
                         break
                 X[_x:_x+28,_y:_y+28] = self.images[number][np.random.randint(len(self.images[number]))]
@@ -119,9 +110,17 @@ class MNISTDataProducer(object):
         X = np.zeros((grid_size * 28, grid_size * 28))
         y = np.zeros((len(target)))
         flag = np.zeros((grid_size * 28, grid_size * 28))
+
+        if interference:
+            part = np.random.choice(grid_size * grid_size + 1, len(target)+1)
+        else:
+            part = np.random.choice(grid_size * grid_size + 1, len(target))
+        part = np.sort(part)
+
+        last = 0
         for i in range(len(target)):
-            num_instance = np.random.randint(maxnum_perclass)
-            y[i] = num_instance
+            num_instance = part[i] - last # Let's generate num_instance many target[j]
+            y[i] = min(num_instance, maxnum_perclass)
             for j in range(num_instance):
                 while True:
                     top, left = np.random.randint(X.shape[0]-28), np.random.randint(X.shape[1]-28)
@@ -129,12 +128,30 @@ class MNISTDataProducer(object):
                         break
                 flag[top:top+28, left:left+28] = 1
                 X[top:top+28, left:left+28] += self.images[target[i]][np.random.randint(len(self.images[target[i]]))]
+            last = part[i]
+        
+        if interference:
+            for i in range(last, part[len(target)], 1):
+                while True:
+                    number = np.random.randint(10)
+                    if number not in target:
+                        break
+
+                while True:
+                    top, left = np.random.randint(X.shape[0]-28), np.random.randint(X.shape[1]-28)
+                    if np.sum(flag[top:top+28, left:left+28]) < overlap_rate * (28*28):
+                        break
+                flag[top:top+28, left:left+28] = 1
+                X[top:top+28, left:left+28] += self.images[number][np.random.randint(len(self.images[number]))]
+
+
         X = np.minimum(X, 1)
         return X, y
 
 if __name__ == '__main__':
     gen = MNISTDataProducer()
     X, y = gen.generate_random(grid_size=4, target=[1,2,3,4,5,6])
+    # X, y = gen.generate(grid_size=4, target=[1,2,3,4,5,6])
     import matplotlib.pyplot as plt
     print(y)
     plt.imshow(X, cmap='gray')
