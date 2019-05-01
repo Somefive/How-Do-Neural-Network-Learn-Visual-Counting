@@ -7,7 +7,7 @@ str2bool = lambda s: s == 'True' or s == 'true'
 def str2loss(s):
     if s == 'mse' or s == 'l2':
         return torch.nn.MSELoss
-    elif s == 'mae' or s == 'l1':
+    elif s == 'mae' or s == 'l  1':
         return torch.nn.L1Loss
     elif s == 'smoothl1':
         return torch.nn.SmoothL1Loss
@@ -72,4 +72,3 @@ args.dataset_params = {
 }
 if args.device == 'auto':
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print(args)

@@ -9,6 +9,7 @@ from tensorboardX import SummaryWriter
 import os
 import random
 from utils import *
+import logging
 
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -21,6 +22,11 @@ random.seed(rand_seed)
 torch.manual_seed(rand_seed)
 torch.cuda.manual_seed_all(rand_seed)
 
+log_dir = os.path.join('runs', time_for_file() + '_seed' + str(rand_seed) + '_mnist' + ("_" + args.cm if args.cm != "" else ""))
+writer = SummaryWriter(log_dir)
+set_logger(os.path.join(log_dir, 'train.log'))
+args.save_model_path = os.path.join(log_dir, 'base-model')
+
 # CUDA for PyTorch
 device = torch.device(args.device)
 
@@ -32,7 +38,9 @@ optimizer = args.optim(model.parameters(), lr=args.lr)
 scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 model.load_model(args.load_model_path)
 model.to(device)
-print(model)
+
+logging.info(model)
+logging.info(args)
 
 # Generators
 training_set = MNISTDataset(size=args.train_set_size, **args.dataset_params)
@@ -42,7 +50,6 @@ validation_set = MNISTDataset(size=args.val_set_size, **args.dataset_params)
 validation_generator = data.DataLoader(validation_set, **args.data_generator_params)
 
 print('Dataloader initiated.')
-writer = SummaryWriter('runs/'+ time_for_file() + '_seed' + str(rand_seed) + '_mnist' + ("_" + args.cm if args.cm != "" else ""))
 
 def run(train_mode=True, epoch=0):
     phase = 'train' if train_mode else 'test'
@@ -74,18 +81,24 @@ def run(train_mode=True, epoch=0):
         dos.update(torch.mean(torch.div(diff, sum+1e-8)).item(), local_labels.size(0))
         cnt += local_labels.size(0)
 
-        if len(args.classes) == 1:
-            iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
-                % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
-                    mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
-        else:
-            iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
-                % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0][0].item(), y_pred[0][0].item(), \
-                    mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
-        if idx % 100 == 0:
-            writer.add_scalar(phase+'/mse', mse.avg, current_step)
-            writer.add_scalar(phase+'/mde', mde.avg, current_step)
-            writer.add_scalar(phase+'/dos', dos.avg, current_step)
+        if idx % 50 == 0:
+            if len(args.classes) == 1:
+                iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
+                    % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
+                        mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
+                logging.info('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
+                    % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
+                        mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
+            else:
+                iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
+                    % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0][0].item(), y_pred[0][0].item(), \
+                        mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
+                logging.info('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)'
+                    % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0][0].item(), y_pred[0][0].item(), \
+                        mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg))
+                writer.add_scalar(phase+'/mse', mse.avg, current_step)
+                writer.add_scalar(phase+'/mde', mde.avg, current_step)
+                writer.add_scalar(phase+'/dos', dos.avg, current_step)
 
     if train_mode:
         model.save_model(args.save_model_path, device=device)
