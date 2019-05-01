@@ -144,8 +144,7 @@ class MNISTDataProducer(object):
                 flag[top:top+28, left:left+28] = 1
                 X[top:top+28, left:left+28] += self.images[number][np.random.randint(len(self.images[number]))]
 
-
-        X = np.minimum(X, 1)
+        X = np.minimum(X, 255)
         return X, y
 
 if __name__ == '__main__':
