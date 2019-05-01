@@ -66,7 +66,7 @@ class MNISTDataProducer(object):
             self.images[test_labels[i]].append(test_images[i].reshape(28,28))
 
     def generate(self, grid_size=3, target=[6, 8], maxnum_perclass=5, interference=False):
-
+        not_target = list(set(np.arange(10)) - set(target))
         X = np.zeros((grid_size * 28, grid_size * 28))
         # part = np.random.choice(5, len(target), replace=False)+1
         # max_num = min(max_num, grid_size * grid_size)
@@ -93,10 +93,7 @@ class MNISTDataProducer(object):
         if interference:
             for i in range(last, part[len(target)], 1):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
-                while True:
-                    number = np.random.randint(10)
-                    if number not in target:
-                        break
+                number = not_target[np.random.randint(len(not_target))]
                 X[_x:_x+28,_y:_y+28] = self.images[number][np.random.randint(len(self.images[number]))]
 
         # print(y)
@@ -107,6 +104,7 @@ class MNISTDataProducer(object):
         return X, y
 
     def generate_random(self, grid_size=3, target=[6, 8], maxnum_perclass=5, interference=False, overlap_rate=0.5):
+        not_target = list(set(np.arange(10)) - set(target))
         X = np.zeros((grid_size * 28, grid_size * 28))
         y = np.zeros((len(target)))
         flag = np.zeros((grid_size * 28, grid_size * 28))
@@ -119,9 +117,8 @@ class MNISTDataProducer(object):
 
         last = 0
         for i in range(len(target)):
-            num_instance = part[i] - last # Let's generate num_instance many target[j]
-            y[i] = min(num_instance, maxnum_perclass)
-            for j in range(num_instance):
+            y[i] = min(part[i] - last, maxnum_perclass)
+            for j in range(min(part[i] - last, maxnum_perclass)):
                 while True:
                     top, left = np.random.randint(X.shape[0]-28), np.random.randint(X.shape[1]-28)
                     if np.sum(flag[top:top+28, left:left+28]) < overlap_rate * (28*28):
@@ -130,19 +127,25 @@ class MNISTDataProducer(object):
                 X[top:top+28, left:left+28] += self.images[target[i]][np.random.randint(len(self.images[target[i]]))]
             last = part[i]
         
+        full = False
         if interference:
             for i in range(last, part[len(target)], 1):
-                while True:
-                    number = np.random.randint(10)
-                    if number not in target:
-                        break
+                number = not_target[np.random.randint(len(not_target))]
 
+                cnt = 0
                 while True:
                     top, left = np.random.randint(X.shape[0]-28), np.random.randint(X.shape[1]-28)
                     if np.sum(flag[top:top+28, left:left+28]) < overlap_rate * (28*28):
+                        flag[top:top+28, left:left+28] = 1
+                        X[top:top+28, left:left+28] += self.images[number][np.random.randint(len(self.images[number]))]
                         break
-                flag[top:top+28, left:left+28] = 1
-                X[top:top+28, left:left+28] += self.images[number][np.random.randint(len(self.images[number]))]
+                    cnt +=1 
+                    full = (cnt > 30)
+                    if full:
+                        break
+                if full:
+                    break
+
 
         X = np.minimum(X, 255)
         return X, y

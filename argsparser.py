@@ -53,7 +53,7 @@ parser.add_argument('--filter_size', type=int, default=16)
 
 parser.add_argument('--dataset_random', type=str2bool, default=False)
 parser.add_argument('--dataset_maxnum_perclass', type=int, default=5)
-parser.add_argument('--dataset_overlap_rate', type=float, default=0.5)
+parser.add_argument('--dataset_overlap_rate', type=float, default=0.3)
 
 args = parser.parse_args()
 
