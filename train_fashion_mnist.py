@@ -49,7 +49,7 @@ trainset = F_MNISTDataset(size=args.train_set_size, **args.dataset_params)
 training_generator = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True)
 
 # Download and load the test data
-testset = F_MNISTDataset(size=args.train_set_size, **args.dataset_params)
+testset = F_MNISTDataset(size=args.val_set_size, **args.dataset_params)
 validation_generator = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=True)
 
 print('Dataloader initiated.')
