@@ -87,7 +87,7 @@ class TRANCOSBaseLineModel(nn.Module):
         return x
 
 
-class TRANCOSModel1(nn.Module):
+class TRANCOSModel1(AutoLoadSaveModel):
     def __init__(self, bn=False):
         super(TRANCOSModel1, self).__init__()
         # 3 x 480 x 640

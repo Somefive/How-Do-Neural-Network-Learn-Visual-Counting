@@ -7,7 +7,7 @@ str2bool = lambda s: s == 'True' or s == 'true'
 def str2loss(s):
     if s == 'mse' or s == 'l2':
         return torch.nn.MSELoss
-    elif s == 'mae' or s == 'l  1':
+    elif s == 'mae' or s == 'l1':
         return torch.nn.L1Loss
     elif s == 'smoothl1':
         return torch.nn.SmoothL1Loss
@@ -24,7 +24,7 @@ def str2optim(s):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--load_model_path', type=str, default='models/base-model')
+parser.add_argument('--load_model_path', type=str, default=None)
 parser.add_argument('--save_model_path', type=str, default='models/base-model')
 parser.add_argument('--validate', type=str2bool, default=False)
 parser.add_argument('--grid_size', type=int, default=4)

@@ -81,10 +81,12 @@ def run(train_mode=True, epoch=0):
         cnt += local_labels.size(0)
 
         if len(args.classes) == 1:
-            log_string = '%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)' % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
+            log_string = '%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)' % (
+                'Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
                     mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg)
         else:
-            log_string = '%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)' % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0][0].item(), y_pred[0][0].item(), \
+            log_string = '%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), dos: %.3e(%.3e)' % (
+                'Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0][0].item(), y_pred[0][0].item(), \
                     mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg)
         iterator.set_description(log_string)
         logging.info(log_string)

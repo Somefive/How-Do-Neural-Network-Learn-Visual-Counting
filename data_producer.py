@@ -56,8 +56,8 @@ from collections import defaultdict
 import random
 class MNISTDataProducer(object):
 
-    def __init__(self):
-        ds = pickle.load(open("Datasets/mnist.pkl",'rb'))
+    def __init__(self, data_path):
+        ds = pickle.load(open(data_path,'rb'))
         training_images, training_labels, test_images, test_labels = ds["training_images"], ds["training_labels"], ds["test_images"], ds["test_labels"]
         self.images = defaultdict(list)
         for i in range(len(training_labels)):
