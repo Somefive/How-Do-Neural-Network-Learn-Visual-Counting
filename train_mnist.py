@@ -1,6 +1,6 @@
 import torch
 from torch.utils import data
-from mnist_dataset import MNISTDataset
+from mnist_dataset import MNISTDataset, F_MNISTDataset
 from model import MNISTBaseLineModel
 import torch.optim as optim
 from tqdm import tqdm
@@ -43,10 +43,14 @@ logging.critical(model)
 logging.critical(args)
 
 # Generators
-training_set = MNISTDataset(size=args.train_set_size, **args.dataset_params)
-training_generator = data.DataLoader(training_set, **args.data_generator_params)
+if args.fashion:
+    training_set = F_MNISTDataset(size=args.train_set_size, **args.dataset_params)
+    validation_set = F_MNISTDataset(size=args.val_set_size, **args.dataset_params)
+else:
+    training_set = MNISTDataset(size=args.train_set_size, **args.dataset_params)
+    validation_set = MNISTDataset(size=args.val_set_size, **args.dataset_params)
 
-validation_set = MNISTDataset(size=args.val_set_size, **args.dataset_params)
+training_generator = data.DataLoader(training_set, **args.data_generator_params)
 validation_generator = data.DataLoader(validation_set, **args.data_generator_params)
 
 print('Dataloader initiated.')
