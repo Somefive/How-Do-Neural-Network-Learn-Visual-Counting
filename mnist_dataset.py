@@ -13,7 +13,7 @@ class MNISTDataset(data.Dataset):
         if random:
             self.data = [g.generate_random(grid_size=grid_size, target=target, interference=interference, maxnum_perclass=maxnum_perclass, overlap_rate=overlap_rate) for i in range(size)]
         else:
-            self.data = [g.generate(grid_size=grid_size, target=target, interference=interference) for i in range(size)]
+            self.data = [g.generate(grid_size=grid_size, target=target, interference=interference, maxnum_perclass=maxnum_perclass) for i in range(size)]
 
     def __len__(self):
         return self.size
@@ -49,7 +49,7 @@ class F_MNISTDataset(data.Dataset):
             im = np.array(trainset[i][0])
             training_images.append(im)
             training_labels.append(trainset[i][1])
-        
+
         for i in range(len(testset)):
             im = np.array(testset[i][0])
             test_images.append(im)
@@ -65,9 +65,8 @@ class F_MNISTDataset(data.Dataset):
         import pickle
         with open(data_path, 'wb') as f:
             pickle.dump(ds, f)
-        
+
         print('preprocess done')
 
 if __name__ == '__main__':
     dataset = F_MNISTDataset(3*28)
-    

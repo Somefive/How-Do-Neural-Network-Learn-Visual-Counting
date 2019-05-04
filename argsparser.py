@@ -55,6 +55,10 @@ parser.add_argument('--dataset_random', type=str2bool, default=False)
 parser.add_argument('--dataset_maxnum_perclass', type=int, default=5)
 parser.add_argument('--dataset_overlap_rate', type=float, default=0.3)
 
+parser.add_argument('--visual_sample_only', type=str2bool, default=False)
+
+parser.add_argument('--fashion', type=str2bool, default=False)
+
 args = parser.parse_args()
 
 args.data_generator_params = {
