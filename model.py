@@ -17,10 +17,11 @@ class AutoLoadSaveModel(nn.Module):
         self.to(device)
 
 class MNISTBaseLineModel(AutoLoadSaveModel):
-    def __init__(self, size=84, cls=3, filter_size=16):
+    def __init__(self, size=84, cls=3, filter_size=16, count=True):
         super(MNISTBaseLineModel, self).__init__()
 
         self.cls = cls
+        self.count = count
 
         self.conv1 = nn.Conv2d(1, filter_size, 5, padding=2) # >> 16, 84, 84
         self.conv2 = nn.Conv2d(filter_size, filter_size, 5, padding=2) # >> 16, 84, 84
@@ -28,7 +29,8 @@ class MNISTBaseLineModel(AutoLoadSaveModel):
         self.conv4 = nn.Conv2d(filter_size, filter_size, 5, padding=2) # >> 16, 42, 42
         self.conv5 = nn.Conv2d(filter_size, cls, 5, padding=2) # >> cls, 42, 42
         self.pool = nn.AvgPool2d(size // 2, size // 2) # >> cls, 1, 1
-        # self.fc = nn.Linear(4 * 32 * 32, 1)
+        if not count:
+            self.fc = nn.Linear(cls, cls)
 
     def forward(self, x):
         x = torch.unsqueeze(x, dim=1) # << 1, 64, 64
@@ -38,8 +40,8 @@ class MNISTBaseLineModel(AutoLoadSaveModel):
         x = F.relu(self.conv4(x))
         h = F.relu(self.conv5(x))
         o = self.pool(h).view(-1, self.cls)
-        # o = torch.sigmoid(o)
-        return o, h
+        out = self.fc(o) if not self.count else None
+        return o, h, out
 
 class CircleBaseLineModel(nn.Module):
     def __init__(self):
@@ -126,5 +128,5 @@ class TRANCOSModel1(AutoLoadSaveModel):
         x = self.feature(x).view(-1, 15*20)
         # x = self.fc1(x)
         # x = self.fc2(x)
-        x = self.fc(x)
-        return x
+        y = self.fc(x)
+        return y, x
