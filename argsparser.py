@@ -29,7 +29,6 @@ parser.add_argument('--save_model_path', type=str, default='models/base-model')
 parser.add_argument('--validate', type=str2bool, default=False)
 parser.add_argument('--grid_size', type=int, default=4)
 parser.add_argument('--cm', type=str, default="")
-parser.add_argument('--max_num', type=int, default=5)
 parser.add_argument('--interf', type=str2bool, default=False)
 parser.add_argument('--classes', type=str2ints, default=[6,8])
 

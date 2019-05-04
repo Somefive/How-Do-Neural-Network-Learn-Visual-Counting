@@ -3,6 +3,7 @@ from torch.utils import data
 from data_producer import MNISTDataProducer
 from torchvision import datasets, transforms
 import os
+from tqdm import trange
 
 class MNISTDataset(data.Dataset):
 
@@ -11,9 +12,9 @@ class MNISTDataset(data.Dataset):
         self.data_path = 'Datasets/mnist.pkl'
         g = MNISTDataProducer(self.data_path)
         if random:
-            self.data = [g.generate_random(grid_size=grid_size, target=target, interference=interference, maxnum_perclass=maxnum_perclass, overlap_rate=overlap_rate) for i in range(size)]
+            self.data = [g.generate_random(grid_size=grid_size, target=target, interference=interference, maxnum_perclass=maxnum_perclass, overlap_rate=overlap_rate) for i in trange(size, ncols=0)]
         else:
-            self.data = [g.generate(grid_size=grid_size, target=target, interference=interference, maxnum_perclass=maxnum_perclass) for i in range(size)]
+            self.data = [g.generate(grid_size=grid_size, target=target, interference=interference, maxnum_perclass=maxnum_perclass) for i in trange(size, ncols=0)]
 
     def __len__(self):
         return self.size
