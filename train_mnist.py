@@ -86,8 +86,6 @@ def run(train_mode=True, epoch=0):
             
         else:
             _, _, y_pred = model(local_batch)
-            y_pred = torch.FloatTensor(torch.sigmoid(y_pred).data > 0.5, requires_grad=True)
-            print(y_pred.dtype)
             y_true = local_labels_cls
 
 
@@ -114,7 +112,7 @@ def run(train_mode=True, epoch=0):
                     loss.item(), mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg)
 
         elif args.task == "cls":
-            mAP = utils.compute_map(y_true, y_pred)
+            mAP = compute_map(y_true.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
             log_string = '%s [%d,%d] loss: %.3f mAP: %.3e' % (
                     'Train' if train_mode else 'Val  ', epoch+1, cnt, loss.item(), mAP)
 
