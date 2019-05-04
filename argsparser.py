@@ -58,6 +58,9 @@ parser.add_argument('--dataset_overlap_rate', type=float, default=0.3)
 parser.add_argument('--visual_sample_only', type=str2bool, default=False)
 
 parser.add_argument('--fashion', type=str2bool, default=False)
+parser.add_argument('--trancos', type=str2bool, default=False)
+
+parser.add_argument('--heatmap_dump_path', type=str, default=None)
 
 args = parser.parse_args()
 
