@@ -1,6 +1,7 @@
 import argparse
 import torch
 
+str2list = lambda s: s.split(',')
 str2ints = lambda l: [int(i) for i in l.split(',')]
 str2bool = lambda s: s == 'True' or s == 'true'
 
@@ -25,7 +26,7 @@ def str2optim(s):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--load_model_path', type=str, default=None)
-parser.add_argument('--save_model_path', type=str, default='models/base-model')
+parser.add_argument('--save_model_path', type=str2list, default=['models/base-model'])
 parser.add_argument('--validate', type=str2bool, default=False)
 parser.add_argument('--grid_size', type=int, default=4)
 parser.add_argument('--cm', type=str, default="")

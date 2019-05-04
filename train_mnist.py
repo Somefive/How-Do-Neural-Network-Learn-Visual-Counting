@@ -25,7 +25,7 @@ torch.cuda.manual_seed_all(rand_seed)
 log_dir = os.path.join('runs', time_for_file() + '_seed' + str(rand_seed) + '_mnist' + ("_" + args.cm if args.cm != "" else ""))
 writer = SummaryWriter(log_dir)
 set_logger(os.path.join(log_dir, 'train.log'))
-args.save_model_path = os.path.join(log_dir, 'base-model')
+args.save_model_path.append(os.path.join(log_dir, 'base-model'))
 
 # CUDA for PyTorch
 device = torch.device(args.device)
@@ -101,7 +101,8 @@ def run(train_mode=True, epoch=0):
             writer.add_scalar(phase+'/dos', dos.avg, current_step)
 
     if train_mode:
-        model.save_model(args.save_model_path, device=device)
+        for save_model_path in args.save_model_path:
+            model.save_model(save_model_path, device=device)
 
 
 # Loop over epochs
