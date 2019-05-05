@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 from torch.utils import data
 from mnist_dataset import MNISTDataset, F_MNISTDataset
-from model import MNISTBaseLineModel
+from trancos_dataset import TRANCOSDataset
+from model import MNISTBaseLineModel, TRANCOSBaseLineModel
 import torch.optim as optim
 from tqdm import tqdm
 import numpy as np
@@ -44,8 +45,6 @@ model     = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes), 
 from torch.optim.lr_scheduler import StepLR
 optimizer = args.optim(model.parameters(), lr=args.lr)
 scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
-model.load_model(args.load_model_path)
-model.to(device)
 
 logging.critical(model)
 logging.critical(args)
@@ -54,12 +53,19 @@ logging.critical(args)
 if args.fashion:
     training_set = F_MNISTDataset(size=args.train_set_size, **args.dataset_params)
     validation_set = F_MNISTDataset(size=args.val_set_size, **args.dataset_params)
+elif args.trancos:
+    training_set = TRANCOSDataset('trainval')
+    validation_set = TRANCOSDataset('test')
+    model = TRANCOSBaseLineModel(filter_size=args.filter_size).double()
 else:
     training_set = MNISTDataset(size=args.train_set_size, **args.dataset_params)
     validation_set = MNISTDataset(size=args.val_set_size, **args.dataset_params)
 
 training_generator = data.DataLoader(training_set, **args.data_generator_params)
 validation_generator = data.DataLoader(validation_set, **args.data_generator_params)
+
+model.load_model(args.load_model_path)
+model.to(device)
 
 print('Dataloader initiated.')
 
@@ -69,17 +75,18 @@ def run(train_mode=True, epoch=0):
         optimizer.zero_grad()
         scheduler.step()
 
-    if args.task == "count":    
+    if args.task == "count":
         mse = AverageMeter()
         mde = AverageMeter()
         dos = AverageMeter()
-    
+
     cnt = 0
     iterator = tqdm(enumerate(training_generator if train_mode else validation_generator))
     num_batches = len(training_generator)
     for idx, (local_batch, local_labels, local_labels_cls) in iterator:
         current_step = epoch * num_batches + idx
-        local_batch, local_labels, local_labels_cls = local_batch.to(device), local_labels.to(device), local_labels_cls.to(device), 
+
+        local_batch, local_labels, local_labels_cls = local_batch.to(device), local_labels.to(device), local_labels_cls.to(device),
         y_pred, _ = model(local_batch)
 
         if args.task == "count":
@@ -92,9 +99,9 @@ def run(train_mode=True, epoch=0):
         if train_mode:
             loss.backward()
             optimizer.step()
-        
+
         cnt += local_labels.size(0)
-        
+
         if args.task == "count":
             mse.update(loss.item(), local_labels.size(0))
             diff = torch.abs(y_pred - y_true)
@@ -123,7 +130,10 @@ def run(train_mode=True, epoch=0):
 
         if idx % 30 == 0:
             writer.add_scalar(phase+'/loss', loss.item(), current_step)
-            image = torch.stack((local_batch[0], local_batch[0], local_batch[0]), dim=0)
+            if len(local_batch[0].shape) == 2:
+                image = torch.stack((local_batch[0], local_batch[0], local_batch[0]), dim=0)
+            else:
+                image = local_batch[0]
             writer.add_image('input', image, current_step)
             if args.task == "count":
                 writer.add_scalar(phase+'/mse', mse.avg, current_step)

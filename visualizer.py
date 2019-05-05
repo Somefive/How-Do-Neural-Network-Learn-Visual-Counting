@@ -2,7 +2,8 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from mnist_dataset import MNISTDataset, F_MNISTDataset
-from model import MNISTBaseLineModel
+from model import MNISTBaseLineModel, TRANCOSBaseLineModel
+from trancos_dataset import TRANCOSDataset
 import os
 
 class HeatMapVisualizer:
@@ -18,16 +19,19 @@ class HeatMapVisualizer:
         self.visual_sample_only = visual_sample_only
 
     def plot(self, fig_index=0):
-        X, y = self.dataset[self.index]
+        X, y, category = self.dataset[self.index]
         X = torch.as_tensor([X])
         pred, hidden = self.model(X)
         pred, hidden = pred.detach().numpy()[0], hidden.detach().numpy()[0]
+        X = X.detach().numpy()[0]
         classes_size = len(self.classes) if not self.visual_sample_only else 0
         width = np.ceil(np.sqrt(classes_size+1))
         height = np.ceil((classes_size+1) / width)
         fig = plt.figure(figsize=(width * 3, height * 3), dpi=100)
         plt.subplot(height, width, 1)
-        plt.imshow(X.detach().numpy()[0], **self.plot_params)
+        if len(X.shape) == 3:
+            X = X.swapaxes(0,1).swapaxes(1,2)
+        plt.imshow(X, **self.plot_params)
         plt.title('Sample')
         for i in range(classes_size):
             plt.subplot(height, width, i+2)
@@ -42,6 +46,7 @@ class HeatMapVisualizer:
         else:
             plt.show()
         self.index = (self.index + 1) % len(self.dataset)
+        return X, hidden
 
 
 if __name__ == '__main__':
@@ -49,6 +54,9 @@ if __name__ == '__main__':
     model = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes), filter_size=args.filter_size).double()
     if args.fashion:
         dataset = F_MNISTDataset(args.figs_count+1, **args.dataset_params)
+    elif args.trancos:
+        dataset = TRANCOSDataset('test')
+        model = TRANCOSBaseLineModel(filter_size=args.filter_size).double()
     else:
         dataset = MNISTDataset(args.figs_count+1, **args.dataset_params)
     visualizer = HeatMapVisualizer(
@@ -59,8 +67,11 @@ if __name__ == '__main__':
         classes=args.classes,
         visual_sample_only=args.visual_sample_only
     )
+    data = []
     if args.figs_count > 0:
         for fig_index in range(args.figs_count):
-            visualizer.plot(fig_index+1)
+            data.append(visualizer.plot(fig_index+1))
     else:
-        visualizer.plot(0)
+        data.append(visualizer.plot(0))
+    if args.heatmap_dump_path:
+        np.save(args.heatmap_dump_path, data)
