@@ -93,7 +93,6 @@ def run(train_mode=True, epoch=0):
 
         if args.task == "count":
             y_true = local_labels
-
         else:
             y_true = local_labels_cls
 
