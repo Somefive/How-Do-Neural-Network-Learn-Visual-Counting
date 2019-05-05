@@ -67,24 +67,24 @@ class DotBaseLineModel(nn.Module):
         # o = torch.sigmoid(o)
         return o
 
-class TRANCOSBaseLineModel(nn.Module):
+class TRANCOSBaseLineModel(AutoLoadSaveModel):
     def __init__(self, filter_size=16):
         super(TRANCOSBaseLineModel, self).__init__()
-        # 480 x 640
         self.conv1 = nn.Conv2d(3, filter_size, 5, padding=2)
-        self.conv1_1 = nn.Conv2d(filter_size, filter_size, 5, padding=2)
-        self.pool1 = nn.MaxPool2d(8, 8) # << 16, 60, 80
-        self.conv2 = nn.Conv2d(16, 64, 5, padding=2)
-        self.pool2 = nn.MaxPool2d(4, 4) # << 64, 15, 20
-        self.conv3 = nn.Conv2d(64, 1, 5, padding=2) # << 1, 15, 20
-        self.fc = nn.Linear(15 * 20, 1)
+        self.pool1 = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(filter_size, filter_size, 5, padding=2)
+        self.pool2 = nn.MaxPool2d(2, 2)
+        self.conv3 = nn.Conv2d(filter_size, filter_size, 5, padding=2)
+        self.pool3 = nn.MaxPool2d(2, 2)
+        self.conv4 = nn.Conv2d(filter_size, 1, 5, padding=2)
 
     def forward(self, x):
-        print(x.shape)
+        b = x.size(0)
         x = self.pool1(F.relu(self.conv1(x)))
         x = self.pool2(F.relu(self.conv2(x)))
-        x = self.fc(self.conv3(x).view(-1, 15 * 20))
-        return x
+        x = self.pool3(F.relu(self.conv3(x)))
+        y = self.conv4(x).view(b, -1)
+        return torch.mean(y, dim=1, keepdim=True), x
 
 
 class TRANCOSModel1(AutoLoadSaveModel):
