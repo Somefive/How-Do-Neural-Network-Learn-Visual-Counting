@@ -34,17 +34,20 @@ device = torch.device(args.device)
 
 # Model
 Criterions = {
-    "count"    : nn.SmoothL1Loss(),
+    "count"    : args.loss(),
     "cls"      : nn.MultiLabelSoftMarginLoss(),
 }
 
 
 criterion = Criterions[args.task]
-model     = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes), filter_size=args.filter_size).double()
+if args.trancos:
+    model = TRANCOSBaseLineModel(filter_size=args.filter_size).double()
+else:
+    model     = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes), filter_size=args.filter_size).double()
 
 from torch.optim.lr_scheduler import StepLR
 optimizer = args.optim(model.parameters(), lr=args.lr)
-scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
+scheduler = StepLR(optimizer, step_size=args.scheduler_step, gamma=args.scheduler_gamma)
 
 logging.critical(model)
 logging.critical(args)
@@ -56,7 +59,6 @@ if args.fashion:
 elif args.trancos:
     training_set = TRANCOSDataset('trainval')
     validation_set = TRANCOSDataset('test')
-    model = TRANCOSBaseLineModel(filter_size=args.filter_size).double()
 else:
     training_set = MNISTDataset(size=args.train_set_size, **args.dataset_params)
     validation_set = MNISTDataset(size=args.val_set_size, **args.dataset_params)
@@ -94,8 +96,8 @@ def run(train_mode=True, epoch=0):
         else:
             y_true = local_labels_cls
 
-
         loss = criterion(y_pred, y_true)
+
         if train_mode:
             loss.backward()
             optimizer.step()

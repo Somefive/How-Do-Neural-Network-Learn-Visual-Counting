@@ -61,9 +61,12 @@ parser.add_argument('--trancos', type=str2bool, default=False)
 
 parser.add_argument('--heatmap_dump_path', type=str, default=None)
 
+parser.add_argument('--loss', type=str2loss, default=torch.nn.SmoothL1Loss)
 parser.add_argument('--task', type=str,
                         choices=["count", "cls", "det"], 
                         default="count")
+parser.add_argument('--scheduler_gamma', type=float, default=0.1)
+parser.add_argument('--scheduler_step', type=int, default=10)
 
 args = parser.parse_args()
 

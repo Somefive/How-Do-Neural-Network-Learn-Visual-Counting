@@ -33,7 +33,7 @@ args.save_model_path = os.path.join(log_dir, 'base-model')
 device = torch.device(args.device)
 
 # Model
-model = TRANCOSModel1().double().to(device)
+model = TRANCOSBaseLineModel().double().to(device)
 criterion = args.loss()
 from torch.optim.lr_scheduler import StepLR
 optimizer = optim.SGD([
@@ -70,11 +70,11 @@ def run(train_mode=True, epoch=0):
     iterator = tqdm(enumerate(training_generator if train_mode else validation_generator))
     Xs, y_preds, y_trues = [], [], []
     num_batches = len(training_generator)
-    for idx, (local_batch, local_labels) in iterator:
+    for idx, (local_batch, local_labels, _) in iterator:
         local_batch, local_labels = local_batch.to(device), local_labels.to(device)
         current_step = epoch * num_batches + idx
-        y_pred = model(local_batch)
-        y_true = local_labels.unsqueeze(dim=1)
+        y_pred, _ = model(local_batch)
+        y_true = local_labels
         loss = criterion(y_pred, y_true)
         if train_mode:
             loss.backward()
@@ -86,10 +86,10 @@ def run(train_mode=True, epoch=0):
         mde_ratio.update(torch.mean(torch.div(diff, y_true)).item(), local_labels.size(0))
         cnt += local_labels.size(0)
 
-        if idx % 50 == 0:
-            iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), mde_ratio: %.3e(%.3e)' 
+        iterator.set_description('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), mde_ratio: %.3e(%.3e)' 
                     % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
                         mse.val, mse.avg, mde.val, mde.avg, mde_ratio.val, mde_ratio.avg))
+        if idx % 50 == 0:
             logging.info('%s [%d,%d] (%.1f vs %.1f) mse:%.3e(%.3e), mde:%.3e(%.3e), mde_ratio: %.3e(%.3e)' 
                     % ('Train' if train_mode else 'Val  ', epoch+1, cnt, y_true[0].item(), y_pred[0].item(), \
                         mse.val, mse.avg, mde.val, mde.avg, mde_ratio.val, mde_ratio.avg))
@@ -102,7 +102,7 @@ def run(train_mode=True, epoch=0):
         model.save_model(args.save_model_path, device=device)
 
 # Loop over epochs
-for epoch in range(max_epochs):
+for epoch in range(args.max_epochs):
     run(True, epoch)
     run(False, epoch)
 
