@@ -131,7 +131,10 @@ def run(train_mode=True, epoch=0):
 
         if idx % 30 == 0:
             writer.add_scalar(phase+'/loss', loss.item(), current_step)
-            image = torch.stack((local_batch[0], local_batch[0], local_batch[0]), dim=0)
+            if len(local_batch[0].shape) == 2:
+                image = torch.stack((local_batch[0], local_batch[0], local_batch[0]), dim=0)
+            else:
+                image = local_batch[0]
             writer.add_image('input', image, current_step)
             if args.task == "count":
                 writer.add_scalar(phase+'/mse', mse.avg, current_step)
