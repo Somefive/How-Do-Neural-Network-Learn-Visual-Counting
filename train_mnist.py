@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils import data
 from mnist_dataset import MNISTDataset, F_MNISTDataset
 from trancos_dataset import TRANCOSDataset
-from model import MNISTBaseLineModel
+from model import MNISTBaseLineModel, TRANCOSBaseLineModel
 import torch.optim as optim
 from tqdm import tqdm
 import numpy as np
@@ -75,21 +75,21 @@ def run(train_mode=True, epoch=0):
         optimizer.zero_grad()
         scheduler.step()
 
-    if args.task == "count":    
+    if args.task == "count":
         mse = AverageMeter()
         mde = AverageMeter()
         dos = AverageMeter()
-    
+
     cnt = 0
     iterator = tqdm(enumerate(training_generator if train_mode else validation_generator))
     num_batches = len(training_generator)
     for idx, (local_batch, local_labels, local_labels_cls) in iterator:
         current_step = epoch * num_batches + idx
-        local_batch, local_labels, local_labels_cls = local_batch.to(device), local_labels.to(device), local_labels_cls.to(device), 
+        local_batch, local_labels, local_labels_cls = local_batch.to(device), local_labels.to(device), local_labels_cls.to(device),
         if args.task == "count":
             y_pred, _, _ = model(local_batch)
             y_true = local_labels
-            
+
         else:
             _, _, y_pred = model(local_batch)
             y_true = local_labels_cls
@@ -99,9 +99,9 @@ def run(train_mode=True, epoch=0):
         if train_mode:
             loss.backward()
             optimizer.step()
-        
+
         cnt += local_labels.size(0)
-        
+
         if args.task == "count":
             mse.update(loss.item(), local_labels.size(0))
             diff = torch.abs(y_pred - y_true)

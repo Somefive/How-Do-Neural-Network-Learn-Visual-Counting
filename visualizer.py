@@ -19,7 +19,7 @@ class HeatMapVisualizer:
         self.visual_sample_only = visual_sample_only
 
     def plot(self, fig_index=0):
-        X, y = self.dataset[self.index]
+        X, y, category = self.dataset[self.index]
         X = torch.as_tensor([X])
         pred, hidden = self.model(X)
         pred, hidden = pred.detach().numpy()[0], hidden.detach().numpy()[0]

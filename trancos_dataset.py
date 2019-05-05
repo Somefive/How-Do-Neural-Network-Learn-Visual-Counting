@@ -10,7 +10,7 @@ class TRANCOSDataset(data.Dataset):
                 filename = line[:line.find('.')]
                 X = load_image('Datasets/TRANCOS_v3/images/%s.jpg' % filename) / 255
                 y = load_image('Datasets/TRANCOS_v3/images/%sdots.png' % filename).sum() / 255
-                self.data.append((X, [y]))
+                self.data.append((X, [y], 0))
 
     def __len__(self):
         return len(self.data)
