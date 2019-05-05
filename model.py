@@ -70,6 +70,7 @@ class DotBaseLineModel(nn.Module):
 class TRANCOSBaseLineModel(AutoLoadSaveModel):
     def __init__(self, filter_size=16):
         super(TRANCOSBaseLineModel, self).__init__()
+        self.pool0 = nn.AvgPool2d(4, 4)
         self.conv1 = nn.Conv2d(3, filter_size, 5, padding=2)
         self.pool1 = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(filter_size, filter_size, 5, padding=2)
@@ -77,18 +78,22 @@ class TRANCOSBaseLineModel(AutoLoadSaveModel):
         self.conv3 = nn.Conv2d(filter_size, filter_size, 5, padding=2)
         self.pool3 = nn.MaxPool2d(2, 2)
         self.conv4 = nn.Conv2d(filter_size, 1, 5, padding=2)
+        #self.fc = nn.Linear(160*120*3,1)
 
     def forward(self, x):
         b = x.size(0)
+        x = self.pool0(x)
         x = self.pool1(F.relu(self.conv1(x)))
-        x = self.pool2(F.relu(self.conv2(x)))
-        x = self.pool3(F.relu(self.conv3(x)))
-        y = self.conv4(x).view(b, -1)
-        return torch.mean(y, dim=1, keepdim=True), x
+        #x = self.pool2(F.relu(self.conv2(x)))
+        #x = self.pool3(F.relu(self.conv3(x)))
+        #x = self.conv4(x)
+        #x = self.fc(self.pool0(x).view(b, -1))
+        #return x, x
+        return torch.mean(x.view(b, -1), dim=1, keepdim=True), x
 
 
 class TRANCOSModel1(AutoLoadSaveModel):
-    def __init__(self, bn=False):
+    def __init__(self, bn=False, filter_size=16):
         super(TRANCOSModel1, self).__init__()
         # 3 x 480 x 640
         self.feature = nn.Sequential(
