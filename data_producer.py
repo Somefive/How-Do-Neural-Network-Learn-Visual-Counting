@@ -67,6 +67,7 @@ class MNISTDataProducer(object):
 
     def generate(self, grid_size=3, target=[6, 8], maxnum_perclass=5, interference=False):
         not_target = list(set(np.arange(10)) - set(target))
+        p = np.random.rand(len(target)) > 0.5
         X = np.zeros((grid_size * 28, grid_size * 28))
         # part = np.random.choice(5, len(target), replace=False)+1
         # max_num = min(max_num, grid_size * grid_size)
@@ -89,6 +90,10 @@ class MNISTDataProducer(object):
             yc = part[j] - last # Let's generate yc many target[j]
             y["count"][j] = min(yc, maxnum_perclass)
             y["cls"][j] = y["count"][j] > 0
+            if p[j]:
+                y["count"][j] = y["cls"][j] = 0
+                last = part[j]
+                continue
             for i in range(last, min(yc, maxnum_perclass)+last):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
                 X[_x:_x+28,_y:_y+28] = self.images[target[j]][np.random.randint(len(self.images[target[j]]))]
@@ -96,7 +101,7 @@ class MNISTDataProducer(object):
 
         if interference:
             for i in range(last, part[len(target)], 1):
-                _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
+                _x, _y = pos[i-1] // grid_size * 28, pos[i-1] % grid_size * 28
                 number = not_target[np.random.randint(len(not_target))]
                 X[_x:_x+28,_y:_y+28] = self.images[number][np.random.randint(len(self.images[number]))]
 
@@ -109,6 +114,7 @@ class MNISTDataProducer(object):
 
     def generate_random(self, grid_size=3, target=[6, 8], maxnum_perclass=5, interference=False, overlap_rate=0.5):
         not_target = list(set(np.arange(10)) - set(target))
+        p = np.random.rand(len(target)) > 0.5
         X = np.zeros((grid_size * 28, grid_size * 28))
         y = {
             "count": np.zeros((len(target))),
@@ -127,6 +133,10 @@ class MNISTDataProducer(object):
         for i in range(len(target)):
             y["count"][i] = min(part[i] - last, maxnum_perclass)
             y["cls"][i] = y["count"][i] > 0
+            if not p[i]:
+                y["count"][i] = y["cls"][i] = 0
+                last = part[i]
+                continue
             for j in range(min(part[i] - last, maxnum_perclass)):
                 while True:
                     top, left = np.random.randint(X.shape[0]-28), np.random.randint(X.shape[1]-28)

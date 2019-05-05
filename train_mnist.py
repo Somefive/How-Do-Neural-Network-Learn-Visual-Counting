@@ -35,12 +35,12 @@ device = torch.device(args.device)
 # Model
 Criterions = {
     "count"    : nn.SmoothL1Loss(),
-    "cls"   : nn.MultiLabelSoftMarginLoss(),
+    "cls"      : nn.MultiLabelSoftMarginLoss(),
 }
 
 
 criterion = Criterions[args.task]
-model     = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes), filter_size=args.filter_size, count=(args.task=="count")).double()
+model     = MNISTBaseLineModel(size=args.grid_size * 28, cls=len(args.classes), filter_size=args.filter_size).double()
 
 from torch.optim.lr_scheduler import StepLR
 optimizer = args.optim(model.parameters(), lr=args.lr)
@@ -85,13 +85,14 @@ def run(train_mode=True, epoch=0):
     num_batches = len(training_generator)
     for idx, (local_batch, local_labels, local_labels_cls) in iterator:
         current_step = epoch * num_batches + idx
+
         local_batch, local_labels, local_labels_cls = local_batch.to(device), local_labels.to(device), local_labels_cls.to(device),
+        y_pred, _ = model(local_batch)
+
         if args.task == "count":
-            y_pred, _, _ = model(local_batch)
             y_true = local_labels
 
         else:
-            _, _, y_pred = model(local_batch)
             y_true = local_labels_cls
 
 
@@ -118,21 +119,26 @@ def run(train_mode=True, epoch=0):
                     loss.item(), mse.val, mse.avg, mde.val, mde.avg, dos.val, dos.avg)
 
         elif args.task == "cls":
-            mAP = compute_map(y_true.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
-            log_string = '%s [%d,%d] loss: %.3f mAP: %.3e' % (
-                    'Train' if train_mode else 'Val  ', epoch+1, cnt, loss.item(), mAP)
+            # mAP = compute_map(y_true.detach().cpu().numpy(), y_pred.detach().cpu().numpy())
+            total_acc =  ((torch.sigmoid(y_pred) > 0.5).double() == y_true).sum().double()
+            acc = total_acc * 1.0 / (y_true.shape[0] * y_true.shape[1])
+            log_string = '%s [%d,%d] loss: %.3f acc: %.3f (%.1e / %.1e)' % (
+                    'Train' if train_mode else 'Val  ', epoch+1, cnt, loss.item(), acc,
+                    total_acc, y_true.shape[0] * y_true.shape[1] )
 
         iterator.set_description(log_string)
         logging.info(log_string)
 
         if idx % 30 == 0:
             writer.add_scalar(phase+'/loss', loss.item(), current_step)
+            image = torch.stack((local_batch[0], local_batch[0], local_batch[0]), dim=0)
+            writer.add_image('input', image, current_step)
             if args.task == "count":
                 writer.add_scalar(phase+'/mse', mse.avg, current_step)
                 writer.add_scalar(phase+'/mde', mde.avg, current_step)
                 writer.add_scalar(phase+'/dos', dos.avg, current_step)
             else:
-                writer.add_scalar(phase+'/mAP', mAP, current_step)
+                writer.add_scalar(phase+'/acc', acc, current_step)
 
     if train_mode:
         for save_model_path in args.save_model_path:
