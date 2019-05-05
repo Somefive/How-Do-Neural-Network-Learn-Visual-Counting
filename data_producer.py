@@ -65,10 +65,12 @@ class MNISTDataProducer(object):
         for i in range(len(test_labels)):
             self.images[test_labels[i]].append(test_images[i].reshape(28,28))
 
-    def generate(self, grid_size=3, target=[6, 8], maxnum_perclass=5, interference=False):
+    def generate(self, grid_size=3, target=[6, 8], maxnum_perclass=5, interference=False, det=False):
         not_target = list(set(np.arange(10)) - set(target))
         p = np.random.rand(len(target)) > 0.5
         X = np.zeros((grid_size * 28, grid_size * 28))
+        bboxes = []
+        bbox_cls = []
         # part = np.random.choice(5, len(target), replace=False)+1
         # max_num = min(max_num, grid_size * grid_size)
         if interference:
@@ -97,6 +99,8 @@ class MNISTDataProducer(object):
             for i in range(last, min(yc, maxnum_perclass)+last):
                 _x, _y = pos[i] // grid_size * 28, pos[i] % grid_size * 28
                 X[_x:_x+28,_y:_y+28] = self.images[target[j]][np.random.randint(len(self.images[target[j]]))]
+                bboxes.append((_x, _y, _x+28, _y+28))
+                bbox_cls.append(target[j])
             last = part[j]
 
         if interference:
@@ -109,10 +113,11 @@ class MNISTDataProducer(object):
         # import matplotlib.pyplot as plt
         # plt.imshow(X)
         # plt.show()
-
+        if det:
+            return X, y["count"], y["cls"], bboxes, bbox_cls
         return X, y["count"], y["cls"]
 
-    def generate_random(self, grid_size=3, target=[6, 8], maxnum_perclass=5, interference=False, overlap_rate=0.5):
+    def generate_random(self, grid_size=3, target=[6, 8], maxnum_perclass=5, interference=False, overlap_rate=0.5, det=False):
         not_target = list(set(np.arange(10)) - set(target))
         p = np.random.rand(len(target)) > 0.5
         X = np.zeros((grid_size * 28, grid_size * 28))
@@ -120,7 +125,8 @@ class MNISTDataProducer(object):
             "count": np.zeros((len(target))),
             "cls"  : np.zeros(len(target))
         }
-
+        bboxes = []
+        bbox_cls = []
         flag = np.zeros((grid_size * 28, grid_size * 28))
 
         if interference:
@@ -144,6 +150,8 @@ class MNISTDataProducer(object):
                         break
                 flag[top:top+28, left:left+28] = 1
                 X[top:top+28, left:left+28] += self.images[target[i]][np.random.randint(len(self.images[target[i]]))]
+                bboxes.append((top, left, top+28, left+28))
+                bbox_cls.append(target[i])
             last = part[i]
         
         full = False
@@ -167,6 +175,8 @@ class MNISTDataProducer(object):
 
 
         X = np.minimum(X, 255)
+        if det:
+            return X, y["count"], y["cls"], bboxes, bbox_cls
         return X, y["count"], y["cls"]
 
 if __name__ == '__main__':

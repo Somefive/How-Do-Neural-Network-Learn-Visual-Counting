@@ -7,14 +7,14 @@ from tqdm import trange
 
 class MNISTDataset(data.Dataset):
 
-    def __init__(self, size, grid_size=3, target=[6, 8], interference=False, random=False, maxnum_perclass=5, overlap_rate=0.5):
+    def __init__(self, size, grid_size=3, target=[6, 8], interference=False, random=False, maxnum_perclass=5, overlap_rate=0.5, det=False):
         self.size = size
         self.data_path = 'Datasets/mnist.pkl'
         g = MNISTDataProducer(self.data_path)
         if random:
-            self.data = [g.generate_random(grid_size=grid_size, target=target, interference=interference, maxnum_perclass=maxnum_perclass, overlap_rate=overlap_rate) for i in trange(size, ncols=0)]
+            self.data = [g.generate_random(grid_size=grid_size, target=target, interference=interference, maxnum_perclass=maxnum_perclass, overlap_rate=overlap_rate, det=det) for i in trange(size, ncols=0)]
         else:
-            self.data = [g.generate(grid_size=grid_size, target=target, interference=interference, maxnum_perclass=maxnum_perclass) for i in trange(size, ncols=0)]
+            self.data = [g.generate(grid_size=grid_size, target=target, interference=interference, maxnum_perclass=maxnum_perclass, det=det) for i in trange(size, ncols=0)]
 
     def __len__(self):
         return self.size

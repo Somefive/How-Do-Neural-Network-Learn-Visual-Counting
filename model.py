@@ -6,6 +6,8 @@ import os
 class AutoLoadSaveModel(nn.Module):
 
     def load_model(self, load_model_path):
+        print(load_model_path)
+        print(os.path.exists(load_model_path), load_model_path)
         if load_model_path and os.path.exists(load_model_path):
             self.load_state_dict(torch.load(load_model_path))
             self.eval()
